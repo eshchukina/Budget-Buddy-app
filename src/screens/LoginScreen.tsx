@@ -8,6 +8,7 @@ import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
 import Header from '../text/Header';
 import CustomButton from '../buttons/CustomButton';
+import Back from 'react-native-vector-icons/Ionicons';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -31,15 +32,13 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
       );
 
       if (response.status === 200) {
-        // Сохранение токена в AsyncStorage
-        console.log(response.data.id)
+        console.log(response.data.id);
         await AsyncStorage.setItem('accessToken', response.data.accessToken);
-        await AsyncStorage.setItem('accountId', response.data.id.toString()); 
+        await AsyncStorage.setItem('accountId', response.data.id.toString());
         console.log('Login successful');
         console.log(response.data);
         setPassword('');
         setEmail('');
-        // Переход на другой экран или выполнение других действий после успешной авторизации
       } else {
         console.log('Login failed');
       }
@@ -51,13 +50,12 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
   const goToRegister = () => {
     navigation.navigate('Register');
   };
-  const buttonImage = require('../back-svgrepo-com.png');
 
   return (
     <View style={styles.container}>
       <View style={styles.backButton}>
         <CustomButton
-          imageSource={buttonImage}
+          icon={<Back name="chevron-back" size={30} color="#96aa9a" />}
           onPress={() => navigation.navigate('Home')}
         />
       </View>
@@ -70,6 +68,7 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
           value={email}
           onChangeText={setEmail}
           placeholderTextColor="#b4bfc5"
+          autoCapitalize="none"
         />
         <TextInput
           style={styles.input}
@@ -78,6 +77,7 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
           placeholderTextColor="#b4bfc5"
           onChangeText={setPassword}
           secureTextEntry
+          autoCapitalize="none"
         />
         <Button
           text="авторизация"
@@ -105,9 +105,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f3f7f8',
-    paddingBottom: 30,
-    paddingTop: 20,
+    backgroundColor: '#f6f6f5',
+    padding: 20,
   },
   inputContainer: {
     width: '100%',

@@ -1,11 +1,12 @@
 import React, {useState} from 'react';
-import {StyleSheet, Text, TextInput, View, Image} from 'react-native';
+import {StyleSheet, Text, TextInput, View} from 'react-native';
 import axios from 'axios';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
 import Header from '../text/Header';
+import Back from 'react-native-vector-icons/Ionicons';
 
 import CustomButton from '../buttons/CustomButton';
 type RegisterScreenNavigationProp = NativeStackNavigationProp<
@@ -56,14 +57,13 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
   const goToLogin = () => {
     navigation.navigate('Login');
   };
-  const buttonImage = require('../back-svgrepo-com.png');
 
   return (
     <View style={styles.container}>
       <View style={styles.backButton}>
         <CustomButton
-          imageSource={buttonImage}
-          onPress={() => navigation.navigate('Login')}
+          icon={<Back name="chevron-back" size={30} color="#96aa9a" />}
+          onPress={() => navigation.navigate('Home')}
         />
       </View>
 
@@ -76,6 +76,7 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
           value={name}
           onChangeText={setName}
           placeholderTextColor="#b4bfc5"
+          autoCapitalize="none"
         />
         <TextInput
           style={styles.input}
@@ -83,6 +84,7 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
           value={email}
           onChangeText={setEmail}
           placeholderTextColor="#b4bfc5"
+          autoCapitalize="none"
         />
         <TextInput
           style={styles.input}
@@ -91,6 +93,7 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
           placeholderTextColor="#b4bfc5"
           onChangeText={setPassword}
           secureTextEntry
+          autoCapitalize="none"
         />
         <Button
           text="регистарция"
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f3f7f8',
+    backgroundColor: '#f6f6f5',
     paddingBottom: 30,
     paddingTop: 20,
   },
@@ -127,7 +130,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     width: '100%',
   },
-
   inputContainer: {
     width: '100%',
     alignItems: 'center',
