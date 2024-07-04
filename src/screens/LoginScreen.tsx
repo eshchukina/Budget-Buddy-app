@@ -32,13 +32,9 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
       );
 
       if (response.status === 200) {
-        console.log(response.data.id);
         await AsyncStorage.setItem('accessToken', response.data.accessToken);
         await AsyncStorage.setItem('accountId', response.data.id.toString());
-        console.log('Login successful');
-        console.log(response.data);
-        setPassword('');
-        setEmail('');
+        navigation.navigate('Home');
       } else {
         console.log('Login failed');
       }

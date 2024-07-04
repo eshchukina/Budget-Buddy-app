@@ -1,15 +1,28 @@
 import React from 'react';
-import {TouchableOpacity, Image, StyleSheet, ImageProps} from 'react-native';
+import {
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ImageProps,
+} from 'react-native';
 
 interface ButtonProps {
   imageSource?: ImageProps['source'];
   icon?: React.ReactElement;
   onPress: () => void;
+  backgroundColor?: string;
 }
 
-const CustomButton: React.FC<ButtonProps> = ({imageSource, icon, onPress}) => {
+const CustomButton: React.FC<ButtonProps> = ({
+  imageSource,
+  icon,
+  onPress,
+  backgroundColor = '#fff',
+}) => {
   return (
-    <TouchableOpacity style={styles.buttonContainer} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.buttonContainer, {backgroundColor}]}
+      onPress={onPress}>
       {imageSource ? (
         <Image source={imageSource} style={styles.buttonImage} />
       ) : (
@@ -24,7 +37,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 100,
-    backgroundColor: '#fff',
     justifyContent: 'center',
   },
   buttonImage: {

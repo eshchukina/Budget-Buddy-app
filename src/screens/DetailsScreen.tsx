@@ -1,10 +1,13 @@
 import React from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/RootNavigator';
-import { useNavigation } from '@react-navigation/native';
+import {Button, StyleSheet, Text, View} from 'react-native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/RootNavigator';
+import {useNavigation} from '@react-navigation/native';
 
-type DetailsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Details'>;
+type DetailsScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Details'
+>;
 
 const DetailsScreen: React.FC = () => {
   const navigation = useNavigation<DetailsScreenNavigationProp>();

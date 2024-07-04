@@ -1,30 +1,30 @@
 import React, {useState} from 'react';
-import {Button, StyleSheet, View} from 'react-native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/RootNavigator';
-import {useNavigation} from '@react-navigation/native';
+import {StyleSheet, View, ScrollView} from 'react-native';
+import SideBar from '../SideBar/SideBar';
 import AccountDetails from '../accounts/AccountDetails';
 import TransactionTable from '../Tables/TransactionTable';
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Home'
->;
-
 const HomeScreen: React.FC = () => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [accountId, setAccountId] = useState('');
+  const [isSideBarOpen, setIsSideBarOpen] = useState(false);
 
+  const toggleSideBar = () => {
+    setIsSideBarOpen(!isSideBarOpen);
+    console.log('saef');
+  };
   return (
-    <View style={styles.container}>
-      <AccountDetails setTransactions={setTransactions} />
-      <TransactionTable transactions={transactions} />
-
-      <Button
-        title="Go to Login"
-        onPress={() => navigation.navigate('Login')}
-      />
-    </View>
+    <ScrollView>
+      <View style={styles.container}>
+        <AccountDetails
+          toggleSideBar={toggleSideBar}
+          setAccountId={setAccountId}
+          setTransactions={setTransactions}
+        />
+        <TransactionTable accountId={accountId} transactions={transactions} />
+        <SideBar isOpen={isSideBarOpen} onClose={toggleSideBar} />
+      </View>
+    </ScrollView>
   );
 };
 

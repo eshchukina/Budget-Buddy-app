@@ -40,7 +40,6 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
       );
 
       console.log('response', response);
-
       if (response.status === 200) {
         console.log('Registration successful');
         setPassword('');
