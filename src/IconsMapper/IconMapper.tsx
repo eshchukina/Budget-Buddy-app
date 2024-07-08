@@ -1,5 +1,5 @@
 import React from 'react';
-import Food from 'react-native-vector-icons/MaterialIcons';
+import Food from 'react-native-vector-icons/MaterialCommunityIcons';
 import Car from 'react-native-vector-icons/FontAwesome5';
 import Salary from 'react-native-vector-icons/FontAwesome5';
 import Health from 'react-native-vector-icons/FontAwesome';

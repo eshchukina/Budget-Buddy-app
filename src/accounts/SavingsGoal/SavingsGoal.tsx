@@ -1,13 +1,15 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, Text, Dimensions} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomButton from '../../buttons/CustomButton';
 import Edit from 'react-native-vector-icons/Entypo';
 import Coin from 'react-native-vector-icons/FontAwesome5';
 import GoalModal from './GoalModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface SavingsGoalProps {
   initialAmount: number;
+  accountId: string;
 }
 
 const SavingsGoal: React.FC<SavingsGoalProps> = ({
@@ -15,23 +17,49 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
   accountId,
 }) => {
   const [goalAmount, setGoalAmount] = useState<string>('');
-  const [savedAmount, setSavedAmount] = useState<number>(initialAmount);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    const loadGoalAmount = async () => {
+      try {
+        let storedGoalAmount = await AsyncStorage.getItem(
+          `goalAmount_${accountId}`,
+        );
+        if (storedGoalAmount !== null) {
+          setGoalAmount(storedGoalAmount);
+        } else {
+          setGoalAmount('1000');
+          await AsyncStorage.setItem(`goalAmount_${accountId}`, '1000');
+        }
+      } catch (error) {
+        console.error('Error loading goal amount:', error);
+      }
+    };
+
+    loadGoalAmount();
+  }, [accountId]);
+
+  const saveGoalAmount = async (amount: string) => {
+    try {
+      await AsyncStorage.setItem(`goalAmount_${accountId}`, amount);
+    } catch (error) {
+      console.error('Error saving goal amount:', error);
+    }
+  };
 
   const handleSave = () => {
     const parsedGoal = parseFloat(goalAmount);
     if (!isNaN(parsedGoal) && parsedGoal >= 0) {
-      setSavedAmount(parsedGoal);
+      saveGoalAmount(goalAmount);
       setIsModalVisible(false);
     }
-    console.log(savedAmount);
   };
 
   const remainingAmount =
     goalAmount !== '' ? parseFloat(goalAmount) - initialAmount : 0;
   const screenWidth = Dimensions.get('window').width;
   const halfScreenWidth = screenWidth / 2;
-  console.log(goalAmount);
+
   return (
     <View style={styles.container}>
       <View style={styles.headerTitle}>
@@ -41,7 +69,6 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
       <View style={styles.summaryContainer}>
         <View style={styles.progressNumber}>
           <Text style={styles.summaryText}>Saved: ${initialAmount}</Text>
-
           <Coin name="coins" size={20} color="#e2a55e" />
           <Text style={styles.summaryText}>
             Remaining to save: ${remainingAmount.toFixed(0)}
@@ -61,6 +88,7 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
         <CustomButton
           icon={<Edit name="edit" size={30} color="#96aa9a" />}
           onPress={() => setIsModalVisible(true)}
+          hasShadow={true}
         />
       </View>
       <GoalModal
@@ -76,10 +104,8 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 5,
+    marginLeft: 20,
+    marginRight: 20,
   },
   summaryContainer: {
     marginTop: 20,
@@ -90,7 +116,6 @@ const styles = StyleSheet.create({
     color: '#5e718b',
   },
   headerTitle: {
-    paddingTop: 20,
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
@@ -99,7 +124,7 @@ const styles = StyleSheet.create({
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     width: '100%',
   },
   summaryText: {
@@ -109,7 +134,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 10,
     justifyContent: 'space-between',
-    width: '80%',
+    width: '100%',
     alignItems: 'center',
   },
 });

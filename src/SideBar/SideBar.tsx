@@ -1,49 +1,40 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, StyleSheet, Text, TouchableOpacity} from 'react-native';
 
 interface SideBarProps {
-  isOpen: boolean;
   onClose: () => void;
 }
 
-const SideBar: React.FC<SideBarProps> = ({isOpen, onClose}) => {
-  if (!isOpen) {
-    return null;
-  }
-
+const SideBar: React.FC<SideBarProps> = ({onClose}) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.overlay} onPress={onClose} />
-      <View style={styles.sideBar}>
-        <Text>Side Menu Content</Text>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text>Close Menu</Text>
-        </TouchableOpacity>
+      <View style={styles.header}>
+        <Text style={styles.textTitle}>Menu</Text>
       </View>
+      <TouchableOpacity style={styles.button} onPress={onClose}>
+        <Text>Close Menu</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-    flexDirection: 'row',
-    height: '100%',
-  },
-  overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingBottom: 20,
   },
-  sideBar: {
-    width: 250,
-    backgroundColor: '#f6f6f5',
-    paddingTop: 20,
-    paddingLeft: 10,
-  },
-  closeButton: {
-    padding: 10,
+  header: {
     alignItems: 'center',
+  },
+  textTitle: {
+    fontSize: 25,
+    color: '#221712',
+    textAlign: 'center',
+  },
+  button: {
+    padding: 20,
   },
 });
 

@@ -1,11 +1,24 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import RootNavigator from './src/navigation/RootNavigator';
-
+import { BooleanProvider } from './src/context/ClobalProvider';
+import { AppProvider } from './src/context/FunctionContext';
 const App: React.FC = () => {
   return (
     <View style={styles.container}>
-      <RootNavigator />
+
+
+        <BooleanProvider>   
+          
+           <AppProvider> 
+
+        
+      <RootNavigator />  
+      
+       </AppProvider>
+      </BooleanProvider>
+     
+  
     </View>
   );
 };

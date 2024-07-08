@@ -1,5 +1,13 @@
 import React from 'react';
-import {Modal, StyleSheet, Text, TextInput, View} from 'react-native';
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import Button from '../../buttons/Buttons';
 interface GoalModalProps {
   visible: boolean;
@@ -23,26 +31,33 @@ const GoalModal: React.FC<GoalModalProps> = ({
       transparent={true}
       onRequestClose={onClose}
       statusBarTranslucent={true}>
-      <View style={styles.modalBackground}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalText}>Enter Goal Amount:</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={goalAmount}
-            onChangeText={setGoalAmount}
-          />
-          <View style={styles.buttonContainer}>
-            <Button text="Save" color="#b4bfc5" padding={10} onPress={onSave} />
-            <Button
-              text="Close"
-              color="#b4bfc5"
-              padding={10}
-              onPress={onClose}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>Enter Goal Amount:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={goalAmount}
+              onChangeText={setGoalAmount}
             />
+            <View style={styles.buttonContainer}>
+              <Button
+                text="Save"
+                color="#b4bfc5"
+                padding={10}
+                onPress={onSave}
+              />
+              <Button
+                text="Close"
+                color="#b4bfc5"
+                padding={10}
+                onPress={onClose}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -50,12 +65,12 @@ const GoalModal: React.FC<GoalModalProps> = ({
 const styles = StyleSheet.create({
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: '#5e718b90',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f6f6f5',
     padding: 20,
     width: '80%',
     borderRadius: 20,

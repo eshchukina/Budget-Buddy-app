@@ -6,7 +6,7 @@ import DetailsScreen from '../screens/DetailsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 
 export type RootStackParamList = {
   Home: undefined;

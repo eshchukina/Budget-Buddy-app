@@ -15,15 +15,21 @@ import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import AccountCard from './AccountCard';
 import Menu from 'react-native-vector-icons/Feather';
 import User from 'react-native-vector-icons/Feather';
+import Change from 'react-native-vector-icons/MaterialIcons';
+import NewAccountModal from './NewAccountModal';
 import New from 'react-native-vector-icons/Ionicons';
 import Cahrt from 'react-native-vector-icons/Fontisto';
 import CustomButton from '../buttons/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/RootNavigator';
+import CurrencyExchange from '../currencyExchange/CurrencyExchange';
+import EditAccountModal from './EditAccountModal';
 
 interface AccountDetailsProps {
   setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
+  toggleSideBar:any;
+  setAccountId:any;
 }
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -46,10 +52,64 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
   const [editAccountId, setEditAccountId] = useState<number | null>(null);
   const [editedAccountName, setEditedAccountName] = useState('');
   const [editedAccountCurrency, setEditedAccountCurrency] = useState('');
+  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [isFirstLaunch, setIsFirstLaunch] = useState(true);
 
   useEffect(() => {
     fetchAccounts();
+    fetchUserName();
   }, []);
+
+  useEffect(() => {
+    if (accounts.length > 0 && isFirstLaunch) {
+      openFirstAccount(accounts[0].id);
+      setIsFirstLaunch(false);
+    }
+  }, [accounts]);
+
+  const openFirstAccount = async (accountId: number) => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const headersWithToken = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      };
+
+      const response = await axios.get(
+        `${REACT_APP_API_URL_PRODUCTION}transactions/accounts/${accountId}/statement`,
+        {
+          headers: headersWithToken,
+        },
+      );
+      setAccountId(accountId);
+
+      if (response.status === 200) {
+        const transactions = response.data || [];
+        setTransactions(transactions);
+      } else {
+        console.log('Failed to fetch account statement');
+      }
+    } catch (error) {
+      console.error('Error fetching account statement:', error);
+    }
+  };
+
+  const fetchUserName = async () => {
+    try {
+      const name = await AsyncStorage.getItem('name');
+      if (name) {
+        setUserName(name);
+      }
+    } catch (error) {
+      console.log('Error fetching user name:', error);
+    }
+  };
+
   const fetchAccounts = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
@@ -104,14 +164,12 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
       if (response.status === 201) {
         const newAccount = response.data;
         setAccounts([...accounts, newAccount]);
-        Alert.alert('Success', 'New account created successfully.');
+
         setModalVisible(false);
       } else {
-        Alert.alert('Error', 'Failed to create new account.');
       }
     } catch (error) {
       console.log('Error creating account:', error);
-      Alert.alert('Error', 'Failed to create new account.');
     }
   };
 
@@ -210,21 +268,29 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
         <CustomButton
           icon={<Menu name="align-left" size={30} color="#96aa9a" />}
           onPress={toggleSideBar}
+          hasShadow={true}
         />
 
         <View style={styles.headerWrappper}>
           <CustomButton
+            icon={<Change name="currency-exchange" size={30} color="#96aa9a" />}
+            onPress={() => setCurrencyModalVisible(true)}
+            hasShadow={true}
+          />
+          <CustomButton
             icon={<Cahrt name="pie-chart-2" size={30} color="#96aa9a" />}
             onPress={() => navigation.navigate('Details')}
+            hasShadow={true}
           />
           <CustomButton
             icon={<User name="user" size={30} color="#96aa9a" />}
             onPress={() => navigation.navigate('Login')}
+            hasShadow={true}
           />
         </View>
       </View>
       <View style={styles.headerTitle}>
-        <Text style={styles.heading}>Hello, John!</Text>
+        <Text style={styles.heading}>Hello, {userName}!</Text>
 
         <CustomButton
           icon={<New name="add" size={30} color="#cf7041" />}
@@ -252,64 +318,29 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
         showsHorizontalScrollIndicator={false}
       />
 
-      <Modal
-        visible={editModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setEditModalVisible(false)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Edit Account Details:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter account name"
-              value={editedAccountName}
-              onChangeText={setEditedAccountName}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter currency"
-              value={editedAccountCurrency}
-              onChangeText={setEditedAccountCurrency}
-            />
-            <View style={styles.buttonContainer}>
-              <Button title="Save" onPress={saveEditedAccount} />
-              <Button
-                title="Cancel"
-                onPress={() => setEditModalVisible(false)}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <EditAccountModal
+        editModalVisible={editModalVisible}
+        setEditModalVisible={setEditModalVisible}
+        editedAccountName={editedAccountName}
+        setEditedAccountName={setEditedAccountName}
+        editedAccountCurrency={editedAccountCurrency}
+        setEditedAccountCurrency={setEditedAccountCurrency}
+        saveEditedAccount={saveEditedAccount}
+      />
 
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>New Account Details:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter account name"
-              value={newAccountName}
-              onChangeText={setNewAccountName}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter currency"
-              value={newAccountCurrency}
-              onChangeText={setNewAccountCurrency}
-            />
-            <View style={styles.buttonContainer}>
-              <Button title="Save" onPress={saveNewAccount} />
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <NewAccountModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        newAccountName={newAccountName}
+        setNewAccountName={setNewAccountName}
+        newAccountCurrency={newAccountCurrency}
+        setNewAccountCurrency={setNewAccountCurrency}
+        saveNewAccount={saveNewAccount}
+      />
+      <CurrencyExchange
+        modalVisible={currencyModalVisible}
+        setModalVisible={setCurrencyModalVisible}
+      />
     </View>
   );
 };
@@ -335,7 +366,7 @@ const styles = StyleSheet.create({
   },
   headerWrappper: {
     flexDirection: 'row',
-    width: '30%',
+    width: '50%',
     justifyContent: 'space-between',
   },
   headerTitle: {

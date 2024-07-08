@@ -1,5 +1,12 @@
 import React, {useState} from 'react';
-import {StyleSheet, Text, TextInput, View} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import axios from 'axios';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/RootNavigator';
@@ -7,8 +14,14 @@ import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
 import Header from '../text/Header';
 import Back from 'react-native-vector-icons/Ionicons';
+import {
+  validateEmail,
+  validatePassword,
+  validateName,
+} from '../utils/validation';
 
 import CustomButton from '../buttons/CustomButton';
+
 type RegisterScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'Register'
@@ -20,35 +33,60 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [errorText, setErrorText] = useState('');
 
   const handleRegistration = async () => {
-    const newUser = {
-      name,
-      email,
-      password,
-    };
+    setNameError('');
+    setEmailError('');
+    setPasswordError('');
+    setErrorText('');
+
+    if (!validateName(name)) {
+      setNameError(
+        'Invalid name. Name should be at least 2 characters long and contain only letters',
+      );
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setEmailError('Invalid email address.');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setPasswordError(
+        'Password must be at least 6 characters and contain at least one number and one letter.',
+      );
+      return;
+    }
+
+    const newUser = {name, email, password};
 
     try {
       const response = await axios.post(
         `${REACT_APP_API_URL_PRODUCTION}user`,
         newUser,
         {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
         },
       );
 
-      console.log('response', response);
       if (response.status === 200) {
-        console.log('Registration successful');
         setPassword('');
         setEmail('');
         setName('');
+
+        navigation.navigate('Login');
       } else {
-        console.log('Registration failed');
+        setErrorText('Registration failed. Please try again.');
       }
     } catch (error) {
+      setErrorText(
+        'Error occurred during registration. Please try again later.',
+      );
       console.error('Error:', error);
     }
   };
@@ -58,59 +96,73 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.backButton}>
-        <CustomButton
-          icon={<Back name="chevron-back" size={30} color="#96aa9a" />}
-          onPress={() => navigation.navigate('Home')}
-        />
-      </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <View style={styles.backButton}>
+          <CustomButton
+            icon={<Back name="chevron-back" size={30} color="#96aa9a" />}
+            onPress={() => navigation.navigate('Home')}
+          />
+        </View>
 
-      <View style={styles.inputContainer}>
-        <Header text="Register Screen" color="#e5c5bd" size={24} />
+        <View style={styles.inputContainer}>
+          <Header text="Register Screen" color="#e5c5bd" size={24} />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          value={name}
-          onChangeText={setName}
-          placeholderTextColor="#b4bfc5"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          placeholderTextColor="#b4bfc5"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          placeholderTextColor="#b4bfc5"
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-        />
-        <Button
-          text="регистарция"
-          color="#b4bfc5"
-          padding={10}
-          onPress={handleRegistration}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+            placeholderTextColor="#b4bfc5"
+            autoCapitalize="none"
+          />
+          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholderTextColor="#b4bfc5"
+            autoCapitalize="none"
+          />
+          {emailError ? (
+            <Text style={styles.errorText}>{emailError}</Text>
+          ) : null}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            placeholderTextColor="#b4bfc5"
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
+          {passwordError ? (
+            <Text style={styles.errorText}>{passwordError}</Text>
+          ) : null}
+
+          {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+
+          <Button
+            text="Register"
+            color="#b4bfc5"
+            padding={10}
+            onPress={handleRegistration}
+          />
+        </View>
+        <View>
+          <Text style={styles.text}>Already have an account?</Text>
+          <Button
+            text="Login here"
+            color="transparent"
+            padding={10}
+            onPress={goToLogin}
+          />
+        </View>
       </View>
-      <View>
-        <Text style={styles.text}>У вас уже есть аккаунт?</Text>
-        <Button
-          text=" Авторизоваться здесь"
-          color="transparent"
-          padding={10}
-          onPress={goToLogin}
-        />
-      </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -145,6 +197,12 @@ const styles = StyleSheet.create({
     color: '#5e718b',
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorText: {
+    color: '#5e718b',
+    fontSize: 9,
+    textAlign: 'center',
+    bottom: 10,
   },
 });
 

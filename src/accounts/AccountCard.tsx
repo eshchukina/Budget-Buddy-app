@@ -18,6 +18,8 @@ interface AccountCardProps {
   };
   setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
   handleDelete: any;
+  setAccountId: any;
+  onEdit: any;
 }
 
 const AccountCard: React.FC<AccountCardProps> = ({
@@ -70,7 +72,7 @@ const AccountCard: React.FC<AccountCardProps> = ({
       </Text>
       <View style={styles.buttons}>
         <CustomButton
-          icon={<Edit name="edit" size={20} color="#cf7041" />}
+          icon={<Edit name="edit" size={20} color={'#cf7041'} />}
           onPress={() => onEdit(account.id)}
           backgroundColor={'#b4bfc5'}
         />
