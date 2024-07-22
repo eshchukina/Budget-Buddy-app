@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Button from '../buttons/Buttons';
 import {Picker} from '@react-native-picker/picker';
+import {useTranslation} from 'react-i18next';
 
 interface EditAccountModalProps {
   editModalVisible: boolean;
@@ -31,6 +32,7 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({
   saveEditedAccount,
 }) => {
   const currencies = ['USD', 'EUR', 'GBP', 'GEL', 'TRY', 'RUB'];
+  const {t} = useTranslation();
 
   return (
     <Modal
@@ -42,12 +44,13 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Edit Account Details:</Text>
+            <Text style={styles.modalText}>{t('editAccount')}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter account name"
+              placeholder={t('enterAccountName')}
               value={editedAccountName}
               onChangeText={setEditedAccountName}
+              maxLength={10}
             />
             <View style={styles.pickerContainer}>
               <Picker
@@ -57,6 +60,7 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({
                 }>
                 {currencies.map(currency => (
                   <Picker.Item
+                    style={styles.pickerItem}
                     key={currency}
                     label={currency}
                     value={currency}
@@ -67,13 +71,13 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({
 
             <View style={styles.buttonContainer}>
               <Button
-                text="Save"
+                text={t('save')}
                 color="#b4bfc5"
                 padding={10}
                 onPress={saveEditedAccount}
               />
               <Button
-                text="Close"
+                text={t('close')}
                 color="#b4bfc5"
                 padding={10}
                 onPress={() => setEditModalVisible(false)}
@@ -108,6 +112,8 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 18,
     marginBottom: 10,
+    fontFamily: 'Montserrat-Bold',
+    color: '#5e718b',
   },
   input: {
     height: 40,
@@ -117,6 +123,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     marginBottom: 10,
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -134,6 +142,10 @@ const styles = StyleSheet.create({
     borderColor: '#e5c5bd',
     borderRadius: 10,
     width: '100%',
+  },
+  pickerItem: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
   },
 });
 

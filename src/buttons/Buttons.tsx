@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     color: '#5e718b',
     fontSize: 16,
     textAlign: 'center',
+    fontFamily: 'Montserrat-Bold',
   },
 });
 

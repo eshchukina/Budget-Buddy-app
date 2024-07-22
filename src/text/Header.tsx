@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
   header: {
     textAlign: 'center',
     marginBottom: 10,
+        fontFamily:"Montserrat-Bold"
   },
 });
 

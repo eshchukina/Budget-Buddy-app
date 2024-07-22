@@ -6,6 +6,7 @@ import {
   View,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -14,13 +15,15 @@ import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
 import Header from '../text/Header';
 import Back from 'react-native-vector-icons/Ionicons';
+import Eye from 'react-native-vector-icons/Entypo';
+
 import {
   validateEmail,
   validatePassword,
   validateName,
 } from '../utils/validation';
-
 import CustomButton from '../buttons/CustomButton';
+import {useTranslation} from 'react-i18next';
 
 type RegisterScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -37,6 +40,8 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
   const [passwordError, setPasswordError] = useState('');
   const [nameError, setNameError] = useState('');
   const [errorText, setErrorText] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const {t} = useTranslation();
 
   const handleRegistration = async () => {
     setNameError('');
@@ -46,7 +51,7 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
 
     if (!validateName(name)) {
       setNameError(
-        'Invalid name. Name should be at least 2 characters long and contain only letters',
+        'Name should be at least 2 characters long and contain only letters',
       );
       return;
     }
@@ -106,11 +111,11 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
         </View>
 
         <View style={styles.inputContainer}>
-          <Header text="Register Screen" color="#e5c5bd" size={24} />
+          <Header text={t('register')} color="#e5c5bd" size={24} />
 
           <TextInput
             style={styles.input}
-            placeholder="Name"
+            placeholder="name"
             value={name}
             onChangeText={setName}
             placeholderTextColor="#b4bfc5"
@@ -120,7 +125,7 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
 
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder="email"
             value={email}
             onChangeText={setEmail}
             placeholderTextColor="#b4bfc5"
@@ -130,15 +135,25 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
             <Text style={styles.errorText}>{emailError}</Text>
           ) : null}
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            placeholderTextColor="#b4bfc5"
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="password"
+              value={password}
+              placeholderTextColor="#b4bfc5"
+              onChangeText={setPassword}
+              secureTextEntry={!passwordVisible}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Eye
+                name={passwordVisible ? 'eye-with-line' : 'eye'}
+                size={30}
+                color="#e5c5bd"
+              />
+            </TouchableOpacity>
+          </View>
           {passwordError ? (
             <Text style={styles.errorText}>{passwordError}</Text>
           ) : null}
@@ -146,16 +161,16 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
           {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
           <Button
-            text="Register"
+            text={t('registerButton')}
             color="#b4bfc5"
             padding={10}
             onPress={handleRegistration}
           />
         </View>
         <View>
-          <Text style={styles.text}>Already have an account?</Text>
+          <Text style={styles.text}>{t('alreadyHaveAccount')}</Text>
           <Button
-            text="Login here"
+            text={t('loginHere')}
             color="transparent"
             padding={10}
             onPress={goToLogin}
@@ -175,17 +190,20 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     paddingTop: 20,
   },
+  inputContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     width: '100%',
-  },
-  inputContainer: {
-    width: '100%',
-    alignItems: 'center',
+    paddingLeft: 20,
   },
   input: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
     width: '80%',
     marginVertical: 10,
     padding: 10,
@@ -193,9 +211,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: '#cf7041',
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: '#cf7041',
+    width: '80%',
+    marginVertical: 10,
+    paddingLeft: 5,
+    paddingRight: 5,
+  },
+  passwordInput: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
+    flex: 1,
+  },
   text: {
     color: '#5e718b',
     fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
     textAlign: 'center',
   },
   errorText: {
@@ -203,6 +238,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     textAlign: 'center',
     bottom: 10,
+    fontFamily: 'Montserrat-Medium',
   },
 });
 

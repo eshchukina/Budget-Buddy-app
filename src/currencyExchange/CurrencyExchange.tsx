@@ -1,17 +1,17 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-} from 'react-native';
+import {Modal, View, Text, StyleSheet, TextInput} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import {Picker} from '@react-native-picker/picker';
 import Button from '../buttons/Buttons';
+import {useTranslation} from 'react-i18next';
 
-const CurrencyExchange = ({modalVisible, setModalVisible}) => {
+interface CurrencyExchangeProps {
+  modalVisible: boolean;
+  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const CurrencyExchange: React.FC<CurrencyExchangeProps> = ({ modalVisible, setModalVisible }) => {
   const [amount1, setAmount1] = useState('');
   const [amount2, setAmount2] = useState('');
   const [conversionRates, setConversionRates] = useState({});
@@ -20,6 +20,7 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
   const currencies = ['EUR', 'GBP', 'GEL', 'TRY', 'RUB', 'USD'];
   const inputRef1 = useRef(null);
   const inputRef2 = useRef(null);
+  const {t} = useTranslation();
 
   const updateConversionRates = async () => {
     try {
@@ -32,12 +33,11 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
       const response = await fetch(`${REACT_APP_API_URL_PRODUCTION}exchange`, {
         headers: headersWithToken,
       });
-
       if (!response.ok) {
         console.log('Error fetching conversion rates.');
+
         return;
       }
-
       const data = await response.json();
       const newConversionRates = data.quotes;
 
@@ -55,7 +55,7 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
         console.log('Received zero conversion rates. Using the existing data.');
       }
     } catch (error) {
-      console.log('Error fetching conversion rates:', error);
+      // console.log('Error fetching conversion rates:', error);
     }
   };
 
@@ -81,11 +81,9 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
       } else {
         updateConversionRates();
       }
-
       const intervalId = setInterval(updateConversionRates, 1000 * 60 * 30);
       return () => clearInterval(intervalId);
     };
-
     fetchStoredConversionRates();
   }, []);
 
@@ -152,9 +150,9 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
       onRequestClose={() => setModalVisible(false)}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={styles.headerCurrency}>Converter</Text>
+          <Text style={styles.headerCurrency}>{t('converter')}</Text>
           <View style={styles.labelContainer}>
-            <Text style={styles.label}>from:</Text>
+            <Text style={styles.label}>{t('from')}</Text>
           </View>
           <View style={styles.inputContainer}>
             <TextInput
@@ -181,7 +179,7 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
             </View>
           </View>
           <View style={styles.labelContainer}>
-            <Text style={styles.label}>to:</Text>
+            <Text style={styles.label}>{t('to')}</Text>
           </View>
           <View style={styles.inputContainer}>
             <TextInput
@@ -202,6 +200,7 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
                     key={currency}
                     label={currency}
                     value={currency}
+                    style={styles.pickerItem}
                   />
                 ))}
               </Picker>
@@ -210,13 +209,13 @@ const CurrencyExchange = ({modalVisible, setModalVisible}) => {
 
           <View style={styles.buttonContainer}>
             <Button
-              text="clear"
+              text={t('clear')}
               color="#b4bfc5"
               padding={10}
               onPress={handleCloseConverterForm}
             />
             <Button
-              text="close"
+              text={t('close')}
               color="#b4bfc5"
               padding={10}
               onPress={() => setModalVisible(false)}
@@ -268,6 +267,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   input: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
+    fontSize: 13,
+    width: '60%',
     borderColor: '#e5c5bd',
     borderWidth: 1,
     borderRadius: 10,
@@ -282,11 +285,14 @@ const styles = StyleSheet.create({
   },
   picker: {
     alignItems: 'center',
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
   },
   headerCurrency: {
     fontSize: 24,
     color: '#5e718b',
     marginBottom: 20,
+    fontFamily: 'Montserrat-Bold',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -296,10 +302,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 15,
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
   },
   labelContainer: {
     alignItems: 'flex-start',
     width: '100%',
+  },
+  pickerItem: {
+    fontFamily: 'Montserrat',
+    color: '#5e718b',
   },
 });
 

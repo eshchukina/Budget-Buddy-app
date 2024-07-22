@@ -1,0 +1,21 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/bauhaus.ttf",
+      "sha1": "042384158ebb81ff7459593d158326382a8d47ed"
+    },
+    {
+      "path": "assets/fonts/caviar-dreams.ttf",
+      "sha1": "cd2f14c162cf2a3f4393d8af628074bf90654d15"
+    },
+    {
+      "path": "assets/fonts/muller.ttf",
+      "sha1": "42eb0676271ae9045466ca5aa0e33681542d3017"
+    },
+    {
+      "path": "assets/fonts/regular.ttf",
+      "sha1": "365fb286ef385ee5404b97bb20308cc133c6d2ce"
+    }
+  ]
+}

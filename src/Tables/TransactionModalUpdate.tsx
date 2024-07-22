@@ -14,6 +14,7 @@ import {Picker} from '@react-native-picker/picker';
 import Button from '../buttons/Buttons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import {useTranslation} from 'react-i18next';
 
 interface TransactionModalUpdate {
   modalVisible: boolean;
@@ -38,6 +39,7 @@ const TransactionModalUpdate: React.FC<TransactionModalUpdate> = ({
   const [date, setDate] = useState(new Date());
   const [tag, setTag] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const {t} = useTranslation();
 
   useEffect(() => {
     if (transactionToEdit) {
@@ -123,18 +125,16 @@ const TransactionModalUpdate: React.FC<TransactionModalUpdate> = ({
       }}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={styles.modalText}>
-            {transactionToEdit ? 'Edit Transaction' : 'Create Transaction'}
-          </Text>
+          <Text style={styles.modalText}>{t('editTransaction')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Description"
+            placeholder={t('descriptionPlaceholder')}
             value={description}
             onChangeText={setDescription}
           />
           <TextInput
             style={styles.input}
-            placeholder="Amount"
+            placeholder={t('amountPlaceholder')}
             value={amount}
             keyboardType="numeric"
             onChangeText={setAmount}
@@ -152,35 +152,95 @@ const TransactionModalUpdate: React.FC<TransactionModalUpdate> = ({
               onChange={handleDateChange}
             />
           )}
+          <View style={styles.selectContainer}>
+            <Text style={styles.text}>{t('selectTag')}</Text>
+          </View>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={tag}
               style={styles.picker}
-              onValueChange={(itemValue, itemIndex) => setTag(itemValue)}>
-              <Picker.Item label="Food" value="food" />
-              <Picker.Item label="Transport" value="transport" />
-              <Picker.Item label="Salary" value="salary" />
-              <Picker.Item label="Health" value="health" />
-              <Picker.Item label="Pets" value="pets" />
-              <Picker.Item label="Gifts" value="gifts" />
-              <Picker.Item label="Hobby" value="hobby" />
-              <Picker.Item label="Entertainment" value="entertainment" />
-              <Picker.Item label="Cloth" value="cloth" />
-              <Picker.Item label="MoneyBox" value="moneyBox" />
-              <Picker.Item label="Trips" value="trips" />
-              <Picker.Item label="Credit" value="credit" />
-              <Picker.Item label="Shop" value="shop" />
+              onValueChange={itemValue => setTag(itemValue)}>
+              <Picker.Item
+                label="Food"
+                value="food"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Transport"
+                value="transport"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Salary"
+                value="salary"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Health"
+                value="health"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Pets"
+                value="pets"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Gifts"
+                value="gifts"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Hobby"
+                value="hobby"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Entertainment"
+                value="entertainment"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Cloth"
+                value="cloth"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="MoneyBox"
+                value="moneyBox"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Trips"
+                value="trips"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Credit"
+                value="credit"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Shop"
+                value="shop"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Other"
+                value="other"
+                style={styles.pickerItem}
+              />
             </Picker>
           </View>
           <View style={styles.buttonContainer}>
             <Button
-              text="Save"
+              text={t('save')}
               color="#b4bfc5"
               padding={10}
               onPress={handleSave}
             />
             <Button
-              text="Close"
+              text={t('close')}
               color="#b4bfc5"
               padding={10}
               onPress={() => setModalVisible(false)}
@@ -206,6 +266,12 @@ const styles = StyleSheet.create({
     width: 300,
     marginLeft: 5,
   },
+  selectContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+  },
   modalView: {
     backgroundColor: '#f6f6f5',
     padding: 20,
@@ -219,6 +285,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
     marginBottom: 10,
     width: 300,
     borderColor: '#e5c5bd',
@@ -246,9 +314,20 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   modalText: {
-    fontSize: 24,
+    textAlign: 'center',
+    fontSize: 20,
     color: '#5e718b',
     marginBottom: 20,
+    fontFamily: 'Montserrat-Bold',
+  },
+  text: {
+    color: '#5e718b',
+    fontSize: 15,
+    fontFamily: 'Montserrat-Medium',
+  },
+  pickerItem: {
+    fontFamily: 'Montserrat',
+    color: '#5e718b',
   },
 });
 

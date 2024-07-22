@@ -14,6 +14,7 @@ import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
+import {useTranslation} from 'react-i18next';
 
 interface TransactionModalProps {
   modalVisible: boolean;
@@ -36,6 +37,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   const [date, setDate] = useState(new Date());
   const [tag, setTag] = useState('food');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const {t} = useTranslation();
 
   const createNewTransaction = async () => {
     try {
@@ -75,6 +77,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     }
     setLoading(false);
     fetchTransactions();
+    setDescription('');
+    setAmount('');
   };
 
   const handleCreateTransaction = () => {
@@ -101,17 +105,18 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       onRequestClose={() => setModalVisible(false)}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <Text style={styles.headerCurrency}>New transaction</Text>
+          <Text style={styles.headerCurrency}>{t('newTransaction')}</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="description"
+            placeholder={t('descriptionPlaceholder')}
             value={description}
             onChangeText={text => setDescription(text)}
+            maxLength={30}
           />
           <TextInput
             style={styles.input}
-            placeholder="amount"
+            placeholder={t('amountPlaceholder')}
             value={amount}
             onChangeText={text => setAmount(text)}
             keyboardType="numeric"
@@ -129,36 +134,96 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
               onChange={handleDateChange}
             />
           )}
+          <View style={styles.selectContainer}>
+            <Text style={styles.text}>{t('selectTag')}</Text>
+          </View>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={tag}
               style={styles.picker}
-              onValueChange={(itemValue, itemIndex) => setTag(itemValue)}>
-              <Picker.Item label="Food" value="food" />
-              <Picker.Item label="Transport" value="transport" />
-              <Picker.Item label="Salary" value="salary" />
-              <Picker.Item label="Health" value="health" />
-              <Picker.Item label="Pets" value="pets" />
-              <Picker.Item label="Gifts" value="gifts" />
-              <Picker.Item label="Hobby" value="hobby" />
-              <Picker.Item label="Entertainment" value="entertainment" />
-              <Picker.Item label="Cloth" value="cloth" />
-              <Picker.Item label="MoneyBox" value="moneyBox" />
-              <Picker.Item label="Trips" value="trips" />
-              <Picker.Item label="Credit" value="credit" />
-              <Picker.Item label="Shop" value="shop" />
+              onValueChange={itemValue => setTag(itemValue)}>
+              <Picker.Item
+                label="Food"
+                value="food"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Transport"
+                value="transport"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Salary"
+                value="salary"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Health"
+                value="health"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Pets"
+                value="pets"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Gifts"
+                value="gifts"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Hobby"
+                value="hobby"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Entertainment"
+                value="entertainment"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Cloth"
+                value="cloth"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="MoneyBox"
+                value="moneyBox"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Trips"
+                value="trips"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Credit"
+                value="credit"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Shop"
+                value="shop"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Other"
+                value="other"
+                style={styles.pickerItem}
+              />
             </Picker>
           </View>
 
           <View style={styles.buttonContainer}>
             <Button
-              text="create"
+              text={t('create')}
               color="#b4bfc5"
               padding={10}
               onPress={handleCreateTransaction}
             />
             <Button
-              text="close"
+              text={t('close')}
               color="#b4bfc5"
               padding={10}
               onPress={() => setModalVisible(false)}
@@ -197,12 +262,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
     marginBottom: 10,
     width: 300,
     borderColor: '#e5c5bd',
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 10,
+  },
+  pickerItem: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
+  },
+  selectContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
   },
   datePicker: {
     borderWidth: 1,
@@ -211,6 +288,11 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     width: 300,
+  },
+  text: {
+    color: '#5e718b',
+    fontSize: 15,
+    fontFamily: 'Montserrat-Medium',
   },
   picker: {
     height: 40,
@@ -224,9 +306,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   headerCurrency: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#5e718b',
     marginBottom: 20,
+    fontFamily: 'Montserrat-Bold',
   },
 });
 

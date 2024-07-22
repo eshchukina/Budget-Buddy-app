@@ -4,9 +4,11 @@ import {
   View,
   Text,
   Dimensions,
-  FlatList,
+  ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  FlatList,
+  Alert,
 } from 'react-native';
 import moment from 'moment';
 import IconMapper from '../IconsMapper/IconMapper';
@@ -19,6 +21,8 @@ import {BooleanContext} from '../context/ClobalProvider';
 import TransactionModal from './TransactionModal';
 import Delete from 'react-native-vector-icons/AntDesign';
 import TransactionModalUpdate from './TransactionModalUpdate';
+import {useTranslation} from 'react-i18next';
+
 interface TransactionTableProps {
   transactions: any[];
   accountId: string;
@@ -32,12 +36,11 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
 }) => {
   const context = useContext(BooleanContext);
   const [loading, setLoading] = useState(false);
-  const [showSpinner, setShowSpinner] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
-
+  const {t} = useTranslation();
   const {width} = Dimensions.get('window');
-  const tableHead = ['', '', 'Amount', 'Balance', ' '];
+  const tableHead = ['', '', t('amount'), t('balance'), ' '];
   const [transactionToEdit, setTransactionToEdit] = useState(null);
 
   const formatDate = (date: string) => {
@@ -53,8 +56,21 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
     setTransactionToEdit(transaction);
     setModalVisibleUpdate(true);
   };
-
+  const confirmDeleteTransaction = (transactionId: string) => {
+    Alert.alert('', t('alert'), [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        onPress: () => deleteTransaction(transactionId),
+        style: 'destructive',
+      },
+    ]);
+  };
   const deleteTransaction = async (transactionId: string) => {
+    setLoading(true);
     try {
       const token = await AsyncStorage.getItem('accessToken');
       const headersWithToken = {
@@ -80,12 +96,13 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
       console.error('Error deleting transaction:', error);
       console.log('Error', 'Failed to delete transaction.');
     } finally {
-      setShowSpinner(true);
-      setTimeout(() => setShowSpinner(false), 3000);
+      setLoading(false);
     }
   };
 
   const fetchTransactions = async () => {
+    setLoading(true);
+
     try {
       const token = await AsyncStorage.getItem('accessToken');
       if (!token) {
@@ -113,39 +130,74 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
     } catch (error) {
       console.error('Error fetching account statement:', error);
     }
+    setLoading(false);
   };
 
-  const renderItem = ({item}: {item: any}) => (
-    <TouchableOpacity onPress={() => handleEditTransaction(item)}>
-      <View style={styles.transactionRow}>
-        <IconMapper tag={item.tag} />
-        <View style={styles.transactionDetails}>
-          <Text style={styles.transactionText}>{item.description}</Text>
-          <Text style={styles.transactionDate}>{formatDate(item.date)}</Text>
-        </View>
-        <Text style={[styles.transactionAmount, {width: width / 4}]}>
-          {item.amount}
-        </Text>
-        <Text style={[styles.transactionBalance, {width: width / 4}]}>
-          {item.balance}
-        </Text>
+  const renderItem = ({item}: {item: any}) => {
+    const isFutureDate = moment(item.date).isAfter(moment());
 
-        <CustomButton
-          icon={<Delete name="delete" size={20} color="#cf7041" />}
-          onPress={() => deleteTransaction(item.id)}
-          backgroundColor={'#f6f6f5'}
+    return (
+      <TouchableOpacity onPress={() => handleEditTransaction(item)}>
+        <View
+          style={[
+            styles.transactionRow,
+            isFutureDate ? null : styles.pastTransaction,
+          ]}>
+          <IconMapper tag={item.tag} />
+          <View style={styles.transactionDetails}>
+            <Text style={styles.transactionText}>{item.description}</Text>
+            <Text style={styles.transactionDate}>{formatDate(item.date)}</Text>
+          </View>
+          <Text style={[styles.transactionAmount, {width: width / 4}]}>
+            {item.amount}
+          </Text>
+          <Text style={[styles.transactionBalance, {width: width / 4}]}>
+            {item.balance}
+          </Text>
+
+          <CustomButton
+            icon={<Delete name="delete" size={20} color="#cf7041" />}
+            onPress={() => confirmDeleteTransaction(item.id)}
+            backgroundColor={isFutureDate ? '#f6f6f5' : '#e5c5bd0'}
+          />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.containerSpinner}>
+        <ActivityIndicator
+          color={'#e2a55e'}
+          style={{transform: [{scale: 2}]}}
         />
       </View>
-    </TouchableOpacity>
+    );
+  }
+
+  const renderHeader = () => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}>
+      {tableHead.map((item, index) => (
+        <Text
+          key={index}
+          style={[styles.headerText, {width: width / tableHead.length + 10}]}>
+          {item}
+        </Text>
+      ))}
+    </ScrollView>
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.headerTitle}>
-        <Text style={styles.heading}>Transaction</Text>
+        <Text style={styles.heading}>{t('transaction')}</Text>
 
         <CustomButton
-          icon={<New name="add" size={30} color="#cf7041" />}
+          icon={<New name="add" size={30} color="#e2a55e" />}
           onPress={handleCreateTransaction}
           backgroundColor="#f6f6f5"
         />
@@ -170,60 +222,36 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
         transactionToEdit={transactionToEdit}
       />
 
-      <View>
-        <View>
-          <FlatList
-            data={tableHead}
-            horizontal
-            renderItem={({item}) => (
-              <Text
-                style={[
-                  styles.headerText,
-                  {width: width / tableHead.length + 10},
-                ]}>
-                {item}
-              </Text>
-            )}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.dataWrapper}
-          />
-        </View>
-
-        {showSpinner ? (
-          <ActivityIndicator
-            style={styles.spinner}
-            size="small"
-            color="#0000ff"
-          />
-        ) : (
-          <View>
-            <FlatList
-              data={transactions}
-              renderItem={renderItem}
-              keyExtractor={(item, index) => index.toString()}
-              contentContainerStyle={styles.dataWrapper}
-            />
-          </View>
-        )}
-      </View>
+      <FlatList
+        ListHeaderComponent={renderHeader}
+        data={transactions}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.wrapper}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 10,
+    flex: 1,
+    paddingHorizontal: 5,
+    width: '100%',
+    bottom: 5,
+  },
+  wrapper: {},
+  containerSpinner: {
     flex: 1,
     width: '100%',
+    justifyContent: 'center',
   },
   heading: {
-    paddingLeft: 10,
     fontSize: 20,
-    fontWeight: 'bold',
     color: '#5e718b',
+    fontFamily: 'Montserrat-Bold',
   },
   headerTitle: {
-    paddingTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -233,23 +261,19 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
     backgroundColor: '#f6f6f5',
   },
   headerText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontFamily: 'Montserrat-Bold',
     color: '#cf7041',
     textAlign: 'center',
   },
-  dataWrapper: {
-    paddingHorizontal: 10,
-  },
+  dataWrapper: {},
   transactionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 5,
     borderBottomWidth: 1,
     borderColor: '#e5c5bd',
   },
@@ -258,29 +282,33 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   transactionText: {
-    fontSize: 16,
+    textTransform: 'lowercase',
+    fontSize: 15,
     color: '#000',
+    fontFamily: 'Montserrat-Medium',
   },
   transactionDate: {
     fontSize: 12,
     color: '#666',
+    fontFamily: 'Montserrat-Medium',
   },
   transactionAmount: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#000',
     textAlign: 'right',
+    fontFamily: 'Montserrat-Medium',
   },
   transactionBalance: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#000',
     textAlign: 'right',
     marginLeft: 10,
+    fontFamily: 'Montserrat-Medium',
   },
   centeredView: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 22,
   },
   modalView: {
     margin: 20,
@@ -313,10 +341,8 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  spinner: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
+  pastTransaction: {
+    backgroundColor: '#e5c5bd50',
   },
 });
 

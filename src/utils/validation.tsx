@@ -6,7 +6,6 @@ export const validateEmail = (email: string): boolean => {
 export const validatePassword = (password: string): boolean => {
   const hasNumber = /\d/.test(password);
   const hasLetter = /[a-zA-Z]/.test(password);
-
   return password.length >= 6 && hasNumber && hasLetter;
 };
 

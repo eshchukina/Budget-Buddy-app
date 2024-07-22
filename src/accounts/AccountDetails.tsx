@@ -4,47 +4,62 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Modal,
-  TextInput,
-  Button,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import AccountCard from './AccountCard';
-import Menu from 'react-native-vector-icons/Feather';
-import User from 'react-native-vector-icons/Feather';
-import Change from 'react-native-vector-icons/MaterialIcons';
 import NewAccountModal from './NewAccountModal';
 import New from 'react-native-vector-icons/Ionicons';
-import Cahrt from 'react-native-vector-icons/Fontisto';
 import CustomButton from '../buttons/CustomButton';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/RootNavigator';
 import CurrencyExchange from '../currencyExchange/CurrencyExchange';
 import EditAccountModal from './EditAccountModal';
+import {useTranslation} from 'react-i18next';
+
+interface Account {
+  id: number;
+  name: string;
+  currency: string;
+  currentBalance: number;
+  futureBalance: number;
+  user_id: number;
+}
+
+interface Transaction {
+  id: number;
+  account_id: number;
+  amount: number;
+  date: string;
+  description: string;
+  tag: string;
+  balance: number;
+}
 
 interface AccountDetailsProps {
-  setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
-  toggleSideBar:any;
-  setAccountId:any;
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+  toggleSideBar: () => void;
+  setAccountId: React.Dispatch<React.SetStateAction<string>>;
+  setCurrency: React.Dispatch<React.SetStateAction<string>>;
+  currencyModalVisible: boolean;
+  setCurrencyModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  accounts: Account[];
+  setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
+  transactions: Transaction[];
 }
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Home'
->;
 
 const AccountDetails: React.FC<AccountDetailsProps> = ({
   setTransactions,
-  toggleSideBar,
   setAccountId,
+  setCurrency,
+  currencyModalVisible,
+  setCurrencyModalVisible,
+  accounts,
+  setAccounts,
+  transactions,
 }) => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
-
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [newAccountName, setNewAccountName] = useState('');
   const [newAccountCurrency, setNewAccountCurrency] = useState('');
@@ -52,9 +67,12 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
   const [editAccountId, setEditAccountId] = useState<number | null>(null);
   const [editedAccountName, setEditedAccountName] = useState('');
   const [editedAccountCurrency, setEditedAccountCurrency] = useState('');
-  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [userName, setUserName] = useState('');
   const [isFirstLaunch, setIsFirstLaunch] = useState(true);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(
+    null,
+  );
+  const {t} = useTranslation();
 
   useEffect(() => {
     fetchAccounts();
@@ -62,13 +80,22 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
   }, []);
 
   useEffect(() => {
+    fetchAccounts();
+    fetchUserName();
+  }, [transactions]);
+
+  useEffect(() => {
     if (accounts.length > 0 && isFirstLaunch) {
       openFirstAccount(accounts[0].id);
       setIsFirstLaunch(false);
+      setSelectedAccountId(accounts[0].id);
+      setCurrency(accounts[0].currency);
     }
   }, [accounts]);
 
   const openFirstAccount = async (accountId: number) => {
+    setLoading(true);
+
     try {
       const token = await AsyncStorage.getItem('accessToken');
       if (!token) {
@@ -97,9 +124,12 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     } catch (error) {
       console.error('Error fetching account statement:', error);
     }
+    setLoading(false);
   };
 
   const fetchUserName = async () => {
+    setLoading(true);
+
     try {
       const name = await AsyncStorage.getItem('name');
       if (name) {
@@ -108,9 +138,12 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     } catch (error) {
       console.log('Error fetching user name:', error);
     }
+    setLoading(false);
   };
 
   const fetchAccounts = async () => {
+    setLoading(true);
+
     try {
       const token = await AsyncStorage.getItem('accessToken');
       const headersWithToken = {
@@ -140,6 +173,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
   };
   const handleCreateAccount = () => {
     setModalVisible(true);
+    setNewAccountName('');
   };
 
   const saveNewAccount = async () => {
@@ -210,8 +244,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
 
   const handleDelete = async account => {
     Alert.alert(
-      'Confirm Deletion',
-      'Are you sure you want to delete this account?',
+      '',
+      t('alertAc'),
       [
         {
           text: 'Cancel',
@@ -257,43 +291,23 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
   if (loading) {
     return (
       <View style={styles.container}>
-        {/* <ActivityIndicator size="large" color="#0000ff" /> */}
+        <ActivityIndicator
+          color={'#e2a55e'}
+          style={{transform: [{scale: 2}]}}
+        />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <CustomButton
-          icon={<Menu name="align-left" size={30} color="#96aa9a" />}
-          onPress={toggleSideBar}
-          hasShadow={true}
-        />
-
-        <View style={styles.headerWrappper}>
-          <CustomButton
-            icon={<Change name="currency-exchange" size={30} color="#96aa9a" />}
-            onPress={() => setCurrencyModalVisible(true)}
-            hasShadow={true}
-          />
-          <CustomButton
-            icon={<Cahrt name="pie-chart-2" size={30} color="#96aa9a" />}
-            onPress={() => navigation.navigate('Details')}
-            hasShadow={true}
-          />
-          <CustomButton
-            icon={<User name="user" size={30} color="#96aa9a" />}
-            onPress={() => navigation.navigate('Login')}
-            hasShadow={true}
-          />
-        </View>
-      </View>
       <View style={styles.headerTitle}>
-        <Text style={styles.heading}>Hello, {userName}!</Text>
+        <Text style={styles.heading}>
+          {t('hello')}, {userName}!
+        </Text>
 
         <CustomButton
-          icon={<New name="add" size={30} color="#cf7041" />}
+          icon={<New name="add" size={30} color="#e2a55e" />}
           onPress={handleCreateAccount}
           backgroundColor="#f6f6f5"
         />
@@ -310,9 +324,13 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
             onEdit={accountId => {
               setEditAccountId(accountId);
               setEditModalVisible(true);
+              setEditedAccountName(item.name);
             }}
+            setCurrency={setCurrency}
             handleDelete={handleDelete}
             setAccountId={setAccountId}
+            selectedAccountId={selectedAccountId}
+            setSelectedAccountId={setSelectedAccountId}
           />
         )}
         showsHorizontalScrollIndicator={false}
@@ -347,7 +365,8 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: 250,
+
     backgroundColor: '#f6f6f5',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -356,6 +375,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#5e718b',
     marginBottom: 20,
+    fontFamily: 'Montserrat-Bold',
   },
   headerContainer: {
     flexDirection: 'row',

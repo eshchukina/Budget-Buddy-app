@@ -2,6 +2,7 @@ import React from 'react';
 import {
   TouchableOpacity,
   Image,
+  Text,
   StyleSheet,
   ImageProps,
   ViewStyle,
@@ -13,6 +14,7 @@ interface ButtonProps {
   onPress: () => void;
   backgroundColor?: string;
   hasShadow?: boolean;
+  text?: string;
 }
 
 const CustomButton: React.FC<ButtonProps> = ({
@@ -21,6 +23,7 @@ const CustomButton: React.FC<ButtonProps> = ({
   onPress,
   backgroundColor = '#fff',
   hasShadow = false,
+  text,
 }) => {
   const buttonContainerStyle: ViewStyle = {
     backgroundColor,
@@ -46,6 +49,7 @@ const CustomButton: React.FC<ButtonProps> = ({
       ) : (
         icon
       )}
+      {text && <Text style={styles.buttonText}>{text}</Text>}
     </TouchableOpacity>
   );
 };
@@ -55,12 +59,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 100,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
   buttonImage: {
     width: 40,
     height: 40,
     resizeMode: 'contain',
+  },
+  buttonText: {
+    fontFamily: 'Montserrat-Medium',
+    paddingLeft: 10,
+    color: '#f6f6f5',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

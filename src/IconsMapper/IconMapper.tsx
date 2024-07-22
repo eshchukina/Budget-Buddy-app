@@ -10,7 +10,7 @@ import Entertainment from 'react-native-vector-icons/FontAwesome';
 import Cloth from 'react-native-vector-icons/Fontisto';
 import MoneyBox from 'react-native-vector-icons/FontAwesome5';
 import Trips from 'react-native-vector-icons/Fontisto';
-import Credit from 'react-native-vector-icons/Fontisto';
+import Credit from 'react-native-vector-icons/Ionicons';
 import Other from 'react-native-vector-icons/Ionicons';
 import Shop from 'react-native-vector-icons/FontAwesome6';
 
@@ -49,10 +49,9 @@ const IconMapper: React.FC<IconMapperProps> = ({
     case 'trips':
       return <Trips name="suitcase" size={size} color={color} />;
     case 'credit':
-      return <Credit name="credit-card" size={size} color={color} />;
+      return <Credit name="card" size={size} color={color} />;
     case 'shop':
       return <Shop name="cart-shopping" size={size} color={color} />;
-
     case 'other':
       return <Other name="home" size={size} color={color} />;
     default:

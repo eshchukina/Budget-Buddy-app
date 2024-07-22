@@ -6,6 +6,7 @@ import {
   View,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -17,6 +18,8 @@ import Header from '../text/Header';
 import CustomButton from '../buttons/CustomButton';
 import Back from 'react-native-vector-icons/Ionicons';
 import {validateEmail, validatePassword} from '../utils/validation';
+import Eye from 'react-native-vector-icons/Entypo';
+import {useTranslation} from 'react-i18next';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -31,37 +34,33 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [errorText, setErrorText] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const {t} = useTranslation();
 
   useEffect(() => {
     const requestNewTokenIfNeeded = async () => {
-      try {
-        const expiresIn = await AsyncStorage.getItem('expiresIn');
-
-        if (expiresIn) {
-          const expirationTime = parseInt(expiresIn, 10);
-
-          if (Date.now() >= expirationTime) {
-            await refreshToken();
-          }
+      const expiresIn = await AsyncStorage.getItem('expiresIn');
+      if (expiresIn) {
+        const expirationTime = parseInt(expiresIn, 10);
+        if (Date.now() >= expirationTime) {
+          await refreshToken();
         }
-      } catch (error) {
-        console.error('Error handling token expiration:', error);
+        const timeUntilExpiration = expirationTime - Date.now();
+        const timerId = setTimeout(refreshToken, timeUntilExpiration - 60000);
+        return () => clearTimeout(timerId);
       }
     };
-    console.log('refresh');
+
     requestNewTokenIfNeeded();
   }, []);
 
   const refreshToken = async () => {
     try {
       const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-
       if (storedRefreshToken) {
         const response = await axios.post(
           `${REACT_APP_API_URL_PRODUCTION}refresh`,
-          {
-            refreshToken: storedRefreshToken,
-          },
+          {refreshToken: storedRefreshToken},
         );
 
         if (response.status === 200) {
@@ -69,7 +68,10 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
 
           await AsyncStorage.setItem('accessToken', accessToken);
           await AsyncStorage.setItem('refreshToken', refreshToken);
-          await AsyncStorage.setItem('expiresIn', expires_in.toString());
+          await AsyncStorage.setItem(
+            'expiresIn',
+            (Date.now() + expires_in * 1000).toString(),
+          );
         } else {
           console.log('Token refresh failed');
         }
@@ -101,25 +103,23 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
     try {
       const response = await axios.post(
         `${REACT_APP_API_URL_PRODUCTION}authorization`,
-        {
-          email,
-          password,
-        },
+        {email, password},
       );
 
       if (response.status === 200) {
-        await AsyncStorage.setItem('accessToken', response.data.accessToken);
-        await AsyncStorage.setItem('accountId', response.data.id.toString());
+        const {accessToken, refreshToken, expires_in, id, name} = response.data;
+
+        await AsyncStorage.setItem('accessToken', accessToken);
+        await AsyncStorage.setItem('refreshToken', refreshToken);
         await AsyncStorage.setItem(
           'expiresIn',
-          response.data.expires_in.toString(),
+          (Date.now() + expires_in * 1000).toString(),
         );
-        await AsyncStorage.setItem('name', response.data.name);
-        await AsyncStorage.setItem('email', response.data.email);
+        await AsyncStorage.setItem('accountId', id.toString());
+        await AsyncStorage.setItem('name', name);
 
         navigation.navigate('Home');
       } else {
-        console.log('Login failed');
         setErrorText('Invalid email or password. Please try again.');
       }
     } catch (error) {
@@ -143,10 +143,10 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
         </View>
 
         <View style={styles.inputContainer}>
-          <Header text="Login Screen" color="#e5c5bd" size={24} />
+          <Header text={t('login')} color="#e5c5bd" size={24} />
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder="email"
             value={email}
             onChangeText={setEmail}
             placeholderTextColor="#b4bfc5"
@@ -155,21 +155,31 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
           {emailError ? (
             <Text style={styles.errorText}>{emailError}</Text>
           ) : null}
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            placeholderTextColor="#b4bfc5"
-            secureTextEntry
-            autoCapitalize="none"
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="password"
+              value={password}
+              onChangeText={setPassword}
+              placeholderTextColor="#b4bfc5"
+              secureTextEntry={!passwordVisible}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Eye
+                name={passwordVisible ? 'eye-with-line' : 'eye'}
+                size={30}
+                color="#e5c5bd"
+              />
+            </TouchableOpacity>
+          </View>
           {passwordError ? (
             <Text style={styles.errorText}>{passwordError}</Text>
           ) : null}
           {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
           <Button
-            text="Login"
+            text={t('loginButton')}
             color="#b4bfc5"
             padding={10}
             onPress={handleLogin}
@@ -177,9 +187,9 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
         </View>
 
         <View>
-          <Text style={styles.text}>Don't have an account? </Text>
+          <Text style={styles.text}>{t('haveAccount')}</Text>
           <Button
-            text="Register here"
+            text={t('registerHere')}
             color="transparent"
             padding={10}
             onPress={goToRegister}
@@ -196,7 +206,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f6f6f5',
-    padding: 20,
+    paddingBottom: 30,
+    paddingTop: 20,
   },
   inputContainer: {
     width: '100%',
@@ -207,8 +218,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     width: '100%',
+    paddingLeft: 20,
   },
   input: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b',
     width: '80%',
     marginVertical: 10,
     padding: 10,
@@ -216,16 +230,31 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: '#cf7041',
   },
-  text: {
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: '#cf7041',
+    width: '80%',
+    marginVertical: 10,
+    paddingLeft: 5,
+    paddingRight: 5,
+  },
+  passwordInput: {
+    flex: 1,
+    fontFamily: 'Montserrat-Medium',
     color: '#5e718b',
-    fontSize: 16,
+  },
+  text: {
     textAlign: 'center',
+    color: '#5e718b',
+    fontFamily: 'Montserrat-Medium',
   },
   errorText: {
-    color: '#5e718b',
-    fontSize: 9,
-    textAlign: 'center',
-    bottom: 10,
+    color: 'red',
+    marginBottom: 10,
+    fontFamily: 'Montserrat-Medium',
   },
 });
 

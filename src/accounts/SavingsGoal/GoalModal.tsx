@@ -9,6 +9,8 @@ import {
   Keyboard,
 } from 'react-native';
 import Button from '../../buttons/Buttons';
+import {useTranslation} from 'react-i18next';
+
 interface GoalModalProps {
   visible: boolean;
   goalAmount: string;
@@ -24,6 +26,8 @@ const GoalModal: React.FC<GoalModalProps> = ({
   onSave,
   onClose,
 }) => {
+  const {t} = useTranslation();
+
   return (
     <Modal
       visible={visible}
@@ -34,7 +38,7 @@ const GoalModal: React.FC<GoalModalProps> = ({
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalText}>Enter Goal Amount:</Text>
+            <Text style={styles.modalText}>{t('enterGoal')}</Text>
             <TextInput
               style={styles.input}
               keyboardType="numeric"
@@ -43,13 +47,13 @@ const GoalModal: React.FC<GoalModalProps> = ({
             />
             <View style={styles.buttonContainer}>
               <Button
-                text="Save"
+                text={t('save')}
                 color="#b4bfc5"
                 padding={10}
                 onPress={onSave}
               />
               <Button
-                text="Close"
+                text={t('close')}
                 color="#b4bfc5"
                 padding={10}
                 onPress={onClose}
@@ -82,10 +86,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalText: {
+    textAlign: 'center',
     fontSize: 18,
     marginBottom: 10,
+    fontFamily: 'Montserrat-Bold',
+    color: '#5e718b',
   },
   input: {
+    fontFamily: 'Montserrat-Medium',
+    color: '#5e718b', // цвет текста
     height: 40,
     width: '100%',
     borderColor: '#ccc',
