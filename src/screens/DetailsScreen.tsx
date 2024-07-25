@@ -191,7 +191,6 @@ const DetailsScreen: React.FC<DetailsScreenProps> = ({
           <Text style={styles.currencyText}>{currency}</Text>
         </View>
         <LineChart
-          //hideDataPoints={true}
           data={lineChartData}
           overflowBottom={0}
           animateOnDataChange={true}

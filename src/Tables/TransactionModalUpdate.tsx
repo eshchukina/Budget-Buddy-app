@@ -7,20 +7,18 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {REACT_APP_API_URL_PRODUCTION} from '@env';
+
 import {Picker} from '@react-native-picker/picker';
 import Button from '../buttons/Buttons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import {useTranslation} from 'react-i18next';
+import {updateTransaction} from '../api/transactionService.';
 
 interface TransactionModalUpdate {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
-  accountId: string;
-  context: any;
+  accountId: number;
   setLoading: (loading: boolean) => void;
   fetchTransactions: () => void;
   transactionToEdit?: any;
@@ -40,6 +38,11 @@ const TransactionModalUpdate: React.FC<TransactionModalUpdate> = ({
   const [tag, setTag] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const {t} = useTranslation();
+  const [errorText, setErrorText] = useState('');
+
+  useEffect(() => {
+    setErrorText('');
+  }, [modalVisible]);
 
   useEffect(() => {
     if (transactionToEdit) {
@@ -52,56 +55,42 @@ const TransactionModalUpdate: React.FC<TransactionModalUpdate> = ({
       setAmount('');
       setDate(new Date());
       setTag('');
+      setErrorText('');
     }
-  }, [transactionToEdit]);
+  }, [transactionToEdit, modalVisible]);
 
   const handleSave = async () => {
+    if (!description || !amount || !tag) {
+      console.log('Error', 'All fields are required.');
+      setErrorText('all fields are required');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const token = await AsyncStorage.getItem('accessToken');
-      const headersWithToken = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-
-      const transactionData = {
-        account_id: accountId,
-        description,
-        tag,
-        amount: parseFloat(amount),
-        date: moment(date).toISOString(),
-      };
-
-      let response;
       if (transactionToEdit) {
-        response = await axios.put(
-          `${REACT_APP_API_URL_PRODUCTION}transactions/${transactionToEdit.id}`,
-          transactionData,
-          {headers: headersWithToken},
-        );
-      } else {
-        response = await axios.post(
-          `${REACT_APP_API_URL_PRODUCTION}transactions`,
-          transactionData,
-          {headers: headersWithToken},
-        );
-      }
-
-      if (response.status === 200 || response.status === 201) {
-        console.log('Transaction saved successfully.');
-        fetchTransactions();
-      } else {
-        console.log('Failed to save transaction.');
+        await updateTransaction({
+          accountId,
+          description,
+          tag,
+          amount,
+          date,
+          transactionToEdit,
+          setModalVisible,
+          setLoading,
+          fetchTransactions,
+          setDescription,
+          setAmount,
+          setErrorText,
+        });
       }
     } catch (error) {
       console.error('Error saving transaction:', error);
-      console.log('Failed to save transaction.');
     } finally {
       setLoading(false);
       setModalVisible(false);
     }
-    fetchTransactions();
   };
 
   const toggleDatePicker = () => {
@@ -226,12 +215,25 @@ const TransactionModalUpdate: React.FC<TransactionModalUpdate> = ({
                 style={styles.pickerItem}
               />
               <Picker.Item
+                label="Rent"
+                value="rent"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Education"
+                value="education"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
                 label="Other"
                 value="other"
                 style={styles.pickerItem}
               />
             </Picker>
           </View>
+
+          {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+
           <View style={styles.buttonContainer}>
             <Button
               text={t('save')}
@@ -328,6 +330,12 @@ const styles = StyleSheet.create({
   pickerItem: {
     fontFamily: 'Montserrat',
     color: '#5e718b',
+  },
+  errorText: {
+    color: '#000',
+    fontSize: 10,
+    textAlign: 'center',
+    fontFamily: 'Montserrat-Medium',
   },
 });
 

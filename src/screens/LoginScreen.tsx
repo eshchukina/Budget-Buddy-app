@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,11 +15,12 @@ import {RootStackParamList} from '../navigation/RootNavigator';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
 import Header from '../text/Header';
-import CustomButton from '../buttons/CustomButton';
-import Back from 'react-native-vector-icons/Ionicons';
 import {validateEmail, validatePassword} from '../utils/validation';
 import Eye from 'react-native-vector-icons/Entypo';
 import {useTranslation} from 'react-i18next';
+import {useFocusEffect} from '@react-navigation/native';
+import {useAuth} from '../provider/AuthProvider';
+import ModalInfo from '../modal/ModalInfo';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -36,56 +37,41 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
   const [errorText, setErrorText] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const {t} = useTranslation();
+  const [refreshIntervalId, setRefreshIntervalId] =
+    useState<NodeJS.Timeout | null>(null);
+  const {login} = useAuth();
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
-    const requestNewTokenIfNeeded = async () => {
-      const expiresIn = await AsyncStorage.getItem('expiresIn');
-      if (expiresIn) {
-        const expirationTime = parseInt(expiresIn, 10);
-        if (Date.now() >= expirationTime) {
-          await refreshToken();
-        }
-        const timeUntilExpiration = expirationTime - Date.now();
-        const timerId = setTimeout(refreshToken, timeUntilExpiration - 60000);
-        return () => clearTimeout(timerId);
+    const showWelcomeModal = async () => {
+      const hasShownWelcome = await AsyncStorage.getItem('hasShownWelcome');
+      if (!hasShownWelcome) {
+        setIsModalVisible(true);
+        await AsyncStorage.setItem('hasShownWelcome', 'true');
       }
     };
 
-    requestNewTokenIfNeeded();
-  }, []);
+    showWelcomeModal();
 
-  const refreshToken = async () => {
-    try {
-      const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-      if (storedRefreshToken) {
-        const response = await axios.post(
-          `${REACT_APP_API_URL_PRODUCTION}refresh`,
-          {refreshToken: storedRefreshToken},
-        );
-
-        if (response.status === 200) {
-          const {accessToken, refreshToken, expires_in} = response.data;
-
-          await AsyncStorage.setItem('accessToken', accessToken);
-          await AsyncStorage.setItem('refreshToken', refreshToken);
-          await AsyncStorage.setItem(
-            'expiresIn',
-            (Date.now() + expires_in * 1000).toString(),
-          );
-        } else {
-          console.log('Token refresh failed');
-        }
-      } else {
-        console.log('Refresh token is missing');
+    return () => {
+      if (refreshIntervalId) {
+        clearTimeout(refreshIntervalId);
       }
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-    }
-  };
+    };
+  }, [refreshIntervalId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setEmail('');
+      setPassword('');
+      setPasswordError('');
+      setErrorText('');
+    }, []),
+  );
 
   const handleLogin = async () => {
     if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email address.');
+      setEmailError('Please enter a valid email address');
       return;
     } else {
       setEmailError('');
@@ -108,23 +94,30 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
 
       if (response.status === 200) {
         const {accessToken, refreshToken, expires_in, id, name} = response.data;
-
         await AsyncStorage.setItem('accessToken', accessToken);
         await AsyncStorage.setItem('refreshToken', refreshToken);
-        await AsyncStorage.setItem(
-          'expiresIn',
-          (Date.now() + expires_in * 1000).toString(),
-        );
+        await AsyncStorage.setItem('expiresIn', expires_in.toString());
         await AsyncStorage.setItem('accountId', id.toString());
         await AsyncStorage.setItem('name', name);
+        const expiresInMilliseconds = expires_in * 1000;
+        const timeLeft = expiresInMilliseconds - Date.now();
+        const refreshTime = timeLeft - 60000;
+        login(accessToken);
+        if (refreshIntervalId) {
+          clearTimeout(refreshIntervalId);
+        }
+        const newIntervalId = setTimeout(async () => {
+          await refreshToken();
+          console.log('Token refreshed');
+        }, refreshTime);
 
-        navigation.navigate('Home');
+        setRefreshIntervalId(newIntervalId);
       } else {
-        setErrorText('Invalid email or password. Please try again.');
+        setErrorText('Invalid email or password. Please try again');
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrorText('Error occurred during login. Please try again later.');
+      setErrorText('Error occurred during login. Please try again later');
     }
   };
 
@@ -135,13 +128,6 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-        <View style={styles.backButton}>
-          <CustomButton
-            icon={<Back name="chevron-back" size={30} color="#96aa9a" />}
-            onPress={() => navigation.navigate('Home')}
-          />
-        </View>
-
         <View style={styles.inputContainer}>
           <Header text={t('login')} color="#e5c5bd" size={24} />
           <TextInput
@@ -195,6 +181,10 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
             onPress={goToRegister}
           />
         </View>
+        <ModalInfo
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   );
@@ -203,7 +193,7 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: '#f6f6f5',
     paddingBottom: 30,
@@ -252,8 +242,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Medium',
   },
   errorText: {
-    color: 'red',
+    color: '#000',
     marginBottom: 10,
+    fontSize: 10,
+    textAlign: 'center',
     fontFamily: 'Montserrat-Medium',
   },
 });

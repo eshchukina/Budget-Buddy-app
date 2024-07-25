@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import AccountCard from './AccountCard';
 import NewAccountModal from './NewAccountModal';
@@ -17,30 +16,19 @@ import CustomButton from '../buttons/CustomButton';
 import CurrencyExchange from '../currencyExchange/CurrencyExchange';
 import EditAccountModal from './EditAccountModal';
 import {useTranslation} from 'react-i18next';
+import {openFirstAccount} from '../api/accountService.';
+import {Account, Transaction} from '../types/types';
 
-interface Account {
-  id: number;
-  name: string;
-  currency: string;
-  currentBalance: number;
-  futureBalance: number;
-  user_id: number;
-}
-
-interface Transaction {
-  id: number;
-  account_id: number;
-  amount: number;
-  date: string;
-  description: string;
-  tag: string;
-  balance: number;
-}
+import {
+  fetchAccounts,
+  saveNewAccount,
+  saveEditedAccount,
+} from '../api/accountService.';
 
 interface AccountDetailsProps {
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   toggleSideBar: () => void;
-  setAccountId: React.Dispatch<React.SetStateAction<string>>;
+  setAccountId: React.Dispatch<React.SetStateAction<number>>;
   setCurrency: React.Dispatch<React.SetStateAction<string>>;
   currencyModalVisible: boolean;
   setCurrencyModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -75,55 +63,34 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
   const {t} = useTranslation();
 
   useEffect(() => {
-    fetchAccounts();
+    fetchAccountsData();
     fetchUserName();
   }, []);
 
   useEffect(() => {
-    fetchAccounts();
-    fetchUserName();
+    setLoading(true);
+    fetchAccountsData();
+    setLoading(false);
   }, [transactions]);
 
   useEffect(() => {
-    if (accounts.length > 0 && isFirstLaunch) {
-      openFirstAccount(accounts[0].id);
+    if (Array.isArray(accounts) && accounts.length > 0 && isFirstLaunch) {
+      openFirstAccount(
+        accounts[0].id,
+        setAccountId,
+        setTransactions,
+        setLoading,
+      );
       setIsFirstLaunch(false);
       setSelectedAccountId(accounts[0].id);
       setCurrency(accounts[0].currency);
     }
-  }, [accounts]);
+  }, [accounts, isFirstLaunch, setAccountId, setCurrency, setTransactions]);
 
-  const openFirstAccount = async (accountId: number) => {
+  const fetchAccountsData = async () => {
     setLoading(true);
-
-    try {
-      const token = await AsyncStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const headersWithToken = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-
-      const response = await axios.get(
-        `${REACT_APP_API_URL_PRODUCTION}transactions/accounts/${accountId}/statement`,
-        {
-          headers: headersWithToken,
-        },
-      );
-      setAccountId(accountId);
-
-      if (response.status === 200) {
-        const transactions = response.data || [];
-        setTransactions(transactions);
-      } else {
-        console.log('Failed to fetch account statement');
-      }
-    } catch (error) {
-      console.error('Error fetching account statement:', error);
-    }
+    const fetchedAccounts = await fetchAccounts();
+    setAccounts(fetchedAccounts);
     setLoading(false);
   };
 
@@ -141,108 +108,34 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     setLoading(false);
   };
 
-  const fetchAccounts = async () => {
-    setLoading(true);
-
-    try {
-      const token = await AsyncStorage.getItem('accessToken');
-      const headersWithToken = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-
-      const response = await axios.get(
-        `${REACT_APP_API_URL_PRODUCTION}accounts`,
-        {
-          headers: headersWithToken,
-        },
-      );
-
-      if (response.status === 200) {
-        const fetchedAccounts = response.data;
-
-        setAccounts(fetchedAccounts);
-      } else {
-        console.log('Failed to fetch accounts');
-      }
-    } catch (error) {
-      console.log('Error fetching accounts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
   const handleCreateAccount = () => {
     setModalVisible(true);
     setNewAccountName('');
   };
 
-  const saveNewAccount = async () => {
-    try {
-      const token = await AsyncStorage.getItem('accessToken');
-      const headersWithToken = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
+  const handleSaveNewAccount = async () => {
+    await saveNewAccount(
+      newAccountName,
+      newAccountCurrency,
+      setAccounts,
+      setModalVisible,
+    );
+  };
 
-      const response = await axios.post(
-        `${REACT_APP_API_URL_PRODUCTION}accounts`,
-        {
-          name: newAccountName,
-          currency: newAccountCurrency,
-        },
-        {
-          headers: headersWithToken,
-        },
+  const handleSaveEditedAccount = async () => {
+    if (editAccountId !== null) {
+      await saveEditedAccount(
+        editAccountId,
+        editedAccountName,
+        editedAccountCurrency,
+        setAccounts,
+        setEditModalVisible,
+        fetchAccountsData,
       );
-
-      if (response.status === 201) {
-        const newAccount = response.data;
-        setAccounts([...accounts, newAccount]);
-
-        setModalVisible(false);
-      } else {
-      }
-    } catch (error) {
-      console.log('Error creating account:', error);
     }
   };
 
-  const saveEditedAccount = async () => {
-    try {
-      const token = await AsyncStorage.getItem('accessToken');
-      const headersWithToken = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-
-      const response = await axios.put(
-        `${REACT_APP_API_URL_PRODUCTION}accounts/${editAccountId}`,
-        {
-          name: editedAccountName,
-          currency: editedAccountCurrency,
-        },
-        {
-          headers: headersWithToken,
-        },
-      );
-
-      if (response.status === 200) {
-        const updatedAccount = response.data;
-        const updatedAccounts = accounts.map(acc =>
-          acc.id === editAccountId ? updatedAccount : acc,
-        );
-        setAccounts(updatedAccounts);
-      } else {
-      }
-    } catch (error) {
-      console.log('Error updating account:', error);
-      console.log('Server response:', error.response.data);
-    }
-    setEditModalVisible(false);
-    fetchAccounts();
-  };
-
-  const handleDelete = async account => {
+  const handleDelete = async (account: Account) => {
     Alert.alert(
       '',
       t('alertAc'),
@@ -270,12 +163,19 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
                 },
               );
 
+              const responseBody = await response.text();
               if (response.ok) {
                 const updatedAccounts = accounts.filter(
                   acc => acc.id !== account.id,
                 );
                 setAccounts(updatedAccounts);
+                console.log('Account deleted');
               } else {
+                console.error(
+                  'Failed to delete account:',
+                  response.status,
+                  responseBody,
+                );
               }
             } catch (error) {
               console.error('Error deleting account:', error);
@@ -318,6 +218,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
         keyExtractor={item => item.id.toString()}
         renderItem={({item}) => (
           <AccountCard
+            length={accounts.length}
             key={item.id}
             account={item}
             setTransactions={setTransactions}
@@ -343,7 +244,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
         setEditedAccountName={setEditedAccountName}
         editedAccountCurrency={editedAccountCurrency}
         setEditedAccountCurrency={setEditedAccountCurrency}
-        saveEditedAccount={saveEditedAccount}
+        saveEditedAccount={handleSaveEditedAccount}
       />
 
       <NewAccountModal
@@ -353,7 +254,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
         setNewAccountName={setNewAccountName}
         newAccountCurrency={newAccountCurrency}
         setNewAccountCurrency={setNewAccountCurrency}
-        saveNewAccount={saveNewAccount}
+        saveNewAccount={handleSaveNewAccount}
       />
       <CurrencyExchange
         modalVisible={currencyModalVisible}
@@ -366,12 +267,12 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
 const styles = StyleSheet.create({
   container: {
     height: 250,
-
     backgroundColor: '#f6f6f5',
     alignItems: 'center',
     justifyContent: 'space-around',
   },
   heading: {
+    textTransform: 'capitalize',
     fontSize: 24,
     color: '#5e718b',
     marginBottom: 20,

@@ -61,6 +61,10 @@ const resources = {
      infoText6:'With the built-in currency converter, you can easily convert amounts from one currency to another without extra effort',
      infoText7:'Budget Buddy is your reliable companion in the world of finance. First, you need to register!',
      main:"After creating an account, your transactions will be displayed here",
+     exit:'exit',
+goalReached: "Congratulations! You have reached your savings goal!"
+
+
     },
   },
   ru: {
@@ -122,6 +126,9 @@ infoTitle6:'Конвертер валют:',
 infoText6: 'С встроенным конвертером валют вы легко можете конвертировать суммы из одной валюты в другую без лишних усилий',
 infoText7:'Budget Buddy - ваш надежный помощник в мире финансов. Сначала вам нужно зарегистрироваться!',
 main:"После создания аккаунта здесь будут отображаться ваши транзакции",
+exit:'выход',
+ goalReached: "Ура! Вы накопили нужную сумму!"
+
 
 
     },
@@ -130,7 +137,7 @@ main:"После создания аккаунта здесь будут ото�
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: "ru",
+  lng: "en",
   fallbackLng: "en",
   keySeparator: false,
   interpolation: {

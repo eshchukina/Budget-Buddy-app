@@ -11,8 +11,10 @@ import Cloth from 'react-native-vector-icons/Fontisto';
 import MoneyBox from 'react-native-vector-icons/FontAwesome5';
 import Trips from 'react-native-vector-icons/Fontisto';
 import Credit from 'react-native-vector-icons/Ionicons';
-import Other from 'react-native-vector-icons/Ionicons';
+import Rent from 'react-native-vector-icons/Ionicons';
 import Shop from 'react-native-vector-icons/FontAwesome6';
+import Other from 'react-native-vector-icons/MaterialIcons';
+import Education from 'react-native-vector-icons/FontAwesome';
 
 interface IconMapperProps {
   tag: string;
@@ -52,8 +54,12 @@ const IconMapper: React.FC<IconMapperProps> = ({
       return <Credit name="card" size={size} color={color} />;
     case 'shop':
       return <Shop name="cart-shopping" size={size} color={color} />;
+    case 'rent':
+      return <Rent name="home" size={size} color={color} />;
+    case 'education':
+      return <Education name="book" size={size} color={color} />;
     case 'other':
-      return <Other name="home" size={size} color={color} />;
+      return <Other name="devices-other" size={size} color={color} />;
     default:
       return null;
   }

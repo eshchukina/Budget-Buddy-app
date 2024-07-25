@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -8,19 +8,16 @@ import {
   Text,
 } from 'react-native';
 import moment from 'moment';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
 import {useTranslation} from 'react-i18next';
+import {createNewTransaction} from '../api/transactionService.';
 
 interface TransactionModalProps {
   modalVisible: boolean;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
   accountId: string;
-  context: any;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   fetchTransactions: () => void;
 }
@@ -38,52 +35,32 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   const [tag, setTag] = useState('food');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const {t} = useTranslation();
+  const [errorText, setErrorText] = useState('');
 
-  const createNewTransaction = async () => {
-    try {
-      const token = await AsyncStorage.getItem('accessToken');
-      const headersWithToken = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-
-      const isNegative = tag !== 'salary';
-
-      const newTransactionData = {
-        account_id: accountId,
-        description,
-        tag,
-        amount: isNegative ? -parseFloat(amount) : parseFloat(amount),
-        date: moment(date).toISOString(),
-      };
-
-      const response = await axios.post(
-        `${REACT_APP_API_URL_PRODUCTION}transactions`,
-        newTransactionData,
-        {
-          headers: headersWithToken,
-        },
-      );
-
-      if (response.status === 201) {
-        console.log('Success', 'New transaction created successfully.');
-        setModalVisible(false);
-      } else {
-        console.log('Error', 'Failed to create new transaction.');
-      }
-    } catch (error) {
-      console.error('Error creating transaction:', error);
-      console.log('Error', 'Failed to create new transaction.');
-    }
-    setLoading(false);
-    fetchTransactions();
-    setDescription('');
-    setAmount('');
-  };
+  useEffect(() => {
+    setErrorText('');
+  }, [modalVisible]);
 
   const handleCreateTransaction = () => {
+    if (!description || !amount || !tag) {
+      console.log('Error', 'All fields are required.');
+      setErrorText('all fields are required');
+      return;
+    }
     setLoading(true);
-    createNewTransaction();
+    createNewTransaction({
+      accountId,
+      description,
+      tag,
+      amount,
+      date,
+      setModalVisible,
+      setLoading,
+      fetchTransactions,
+      setDescription,
+      setAmount,
+      setErrorText,
+    });
   };
 
   const toggleDatePicker = () => {
@@ -208,13 +185,23 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 style={styles.pickerItem}
               />
               <Picker.Item
+                label="Rent"
+                value="rent"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Education"
+                value="education"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
                 label="Other"
                 value="other"
                 style={styles.pickerItem}
               />
             </Picker>
           </View>
-
+          {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
           <View style={styles.buttonContainer}>
             <Button
               text={t('create')}
@@ -310,6 +297,12 @@ const styles = StyleSheet.create({
     color: '#5e718b',
     marginBottom: 20,
     fontFamily: 'Montserrat-Bold',
+  },
+  errorText: {
+    color: '#000',
+    fontSize: 10,
+    textAlign: 'center',
+    fontFamily: 'Montserrat-Medium',
   },
 });
 

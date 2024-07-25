@@ -7,6 +7,7 @@ import {
   ScrollView,
   Text,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import SideBar from '../sideBar/SideBar';
 import AccountDetails from '../accounts/AccountDetails';
@@ -16,25 +17,17 @@ import Overlay from '../utils/Overlay';
 import DetailsScreen from './DetailsScreen';
 import CustomButton from '../buttons/CustomButton';
 import Menu from 'react-native-vector-icons/Feather';
-import User from 'react-native-vector-icons/Feather';
 import Home from 'react-native-vector-icons/AntDesign';
 import moment from 'moment';
 import {useTranslation} from 'react-i18next';
 import Change from 'react-native-vector-icons/MaterialIcons';
 import Cahrt from 'react-native-vector-icons/Fontisto';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/RootNavigator';
-const screenWidth = Dimensions.get('window').width;
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Home'
->;
+const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen: React.FC = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [accountId, setAccountId] = useState('');
+  const [accountId, setAccountId] = useState<number>(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [savingsGoalAmount, setSavingsGoalAmount] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
@@ -42,10 +35,22 @@ const HomeScreen: React.FC = () => {
   const [currency, setCurrency] = useState('');
   const [amounts, setAmounts] = useState<number[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const navigation = useNavigation<HomeScreenNavigationProp>();
   const [monthlyAmounts, setMonthlyAmounts] = useState([]);
   const {t} = useTranslation();
   const [accounts, setAccounts] = useState<any[]>([]);
+  const [showNotInfo, setShowNotInfo] = useState(false);
+
+  useEffect(() => {
+    if (transactions.length === 0) {
+      const timer = setTimeout(() => {
+        setShowNotInfo(true);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowNotInfo(false);
+    }
+  }, [transactions]);
 
   useEffect(() => {
     const allMonths = Array.from({length: 12}, (_, index) =>
@@ -156,11 +161,6 @@ const HomeScreen: React.FC = () => {
             icon={<Change name="currency-exchange" size={30} color="#96aa9a" />}
             onPress={() => setCurrencyModalVisible(true)}
           />
-
-          <CustomButton
-            icon={<User name="user" size={30} color="#96aa9a" />}
-            onPress={() => navigation.navigate('Login')}
-          />
         </View>
       </View>
       <AccountDetails
@@ -188,14 +188,18 @@ const HomeScreen: React.FC = () => {
               />
             ) : (
               <View style={styles.textContainer}>
-                <Text style={styles.title}>{t('notInfo')}</Text>
+                {showNotInfo ? (
+                  <Text style={styles.title}>{t('notInfo')}</Text>
+                ) : (
+                  <ActivityIndicator size="large" color="#96aa9a" />
+                )}
               </View>
             )}
           </ScrollView>
         </View>
       ) : (
         <>
-          {accounts.length != 0 ? (
+          {Array.isArray(accounts) && accounts.length > 0 ? (
             <TransactionTable
               accountId={accountId}
               transactions={transactions}
@@ -203,15 +207,21 @@ const HomeScreen: React.FC = () => {
             />
           ) : (
             <View style={styles.imageContainer}>
-              <Text style={styles.title}>{t('main')}</Text>
-              <Image
-                source={require('../../assets/logo/logo4.png')}
-                style={{width: 250, height: 270}}
-              />
+              {showNotInfo ? (
+                <>
+                  <Text style={styles.title}>{t('main')}</Text>
+                  <Image
+                    source={require('../../assets/logo/logo4.png')}
+                    style={{width: 250, height: 270}}
+                  />
+                </>
+              ) : (
+                <ActivityIndicator size="large" color="#96aa9a" />
+              )}
             </View>
           )}
 
-          {transactions.length !== 0 ? (
+          {Array.isArray(transactions) && transactions.length !== 0 ? (
             <SavingsGoal
               currency={currency}
               accountId={accountId}
@@ -258,7 +268,7 @@ const styles = StyleSheet.create({
   },
   headerWrappper: {
     flexDirection: 'row',
-    width: '50%',
+    width: '30%',
     justifyContent: 'space-between',
   },
   drawer: {

@@ -1,13 +1,12 @@
 import React from 'react';
 import {Text, StyleSheet, TouchableOpacity, View} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import {REACT_APP_API_URL_PRODUCTION} from '@env';
+
 import CustomButton from '../buttons/CustomButton';
 import Delete from 'react-native-vector-icons/AntDesign';
 import Edit from 'react-native-vector-icons/FontAwesome';
-import Active from 'react-native-vector-icons/Fontisto';
 import {useTranslation} from 'react-i18next';
+import CurrencyIcon from '../utils/CurrencyIcon';
+import {fetchTransactions} from '../api/accountService.';
 
 interface AccountCardProps {
   account: {
@@ -19,11 +18,12 @@ interface AccountCardProps {
   };
   setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
   handleDelete: (id: number) => void;
-  setAccountId: React.Dispatch<React.SetStateAction<string>>;
+  setAccountId: React.Dispatch<React.SetStateAction<number>>;
   onEdit: (id: number) => void;
   setCurrency: React.Dispatch<React.SetStateAction<string>>;
-  selectedAccountId: any;
-  setSelectedAccountId: any;
+  selectedAccountId: number | null;
+  setSelectedAccountId: React.Dispatch<React.SetStateAction<number | null>>;
+  length: number;
 }
 
 const AccountCard: React.FC<AccountCardProps> = ({
@@ -35,62 +35,45 @@ const AccountCard: React.FC<AccountCardProps> = ({
   setCurrency,
   selectedAccountId,
   setSelectedAccountId,
+  length,
 }) => {
   const {t} = useTranslation();
 
-  const fetchTransactions = async () => {
-    try {
-      const token = await AsyncStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const headersWithToken = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-
-      const response = await axios.get(
-        `${REACT_APP_API_URL_PRODUCTION}transactions/accounts/${account.id}/statement`,
-        {
-          headers: headersWithToken,
-        },
-      );
-
-      setAccountId(account.id);
-      setCurrency(account.currency);
-      setSelectedAccountId(account.id);
-
-      if (response.status === 200) {
-        const transactions = response.data || [];
-        setTransactions(transactions);
-      } else {
-        console.log('Failed to fetch account statement');
-      }
-    } catch (error) {
-      console.error('Error fetching account statement:', error);
-    }
+  const fetchAndSetTransactions = async () => {
+    await fetchTransactions({
+      accountId: account.id,
+      setAccountId,
+      setCurrency,
+      setSelectedAccountId,
+      setTransactions,
+    });
   };
 
-  return (
-    <TouchableOpacity style={styles.card} onPress={fetchTransactions}>
-      <View style={styles.wrapperHeader}>
-        <Text style={styles.cardTitle}>
-          {' '}
-          {account.name} {account.currency}
-        </Text>
-        {selectedAccountId === account.id && (
-          <Active name="radio-btn-active" size={15} color="#f6f6f5" />
-        )}
-      </View>
-      <View style={styles.wrapperTitle}>
-        <Text style={styles.cardText}>{t('cbalance')}</Text>
-        <Text style={styles.cardTitle}> {account.currentBalance}</Text>
-      </View>
+  const cardStyle = length === 1 ? styles.singleCard : styles.card;
+  const cardWrapper =
+    selectedAccountId === account.id ? styles.selectedCard : styles.cardTitle;
 
-      <View style={styles.wrapperTitle}>
-        <Text style={styles.cardText}>{t('fbalance')}</Text>
-        <Text style={styles.cardTitle}> {account.futureBalance}</Text>
+  return (
+    <TouchableOpacity style={cardStyle} onPress={fetchAndSetTransactions}>
+      <View style={styles.wrapper}>
+        <View style={styles.wrapperBalance}>
+          <View style={styles.wrapperHeader}>
+            <Text style={cardWrapper}>
+              {account.name} {account.currency}
+            </Text>
+          </View>
+          <View style={styles.wrapperTitle}>
+            <Text style={styles.cardText}>{t('cbalance')}</Text>
+            <Text style={styles.cardTitle}> {account.currentBalance}</Text>
+          </View>
+          <View style={styles.wrapperTitle}>
+            <Text style={styles.cardText}>{t('fbalance')}</Text>
+            <Text style={styles.cardTitle}> {account.futureBalance}</Text>
+          </View>
+        </View>
+        <View style={styles.wrapperCurency}>
+          <CurrencyIcon currency={account.currency} />
+        </View>
       </View>
       <View style={styles.buttons}>
         <CustomButton
@@ -116,17 +99,37 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginLeft: 5,
     marginRight: 5,
-    width: 170,
+    width: 260,
     height: 150,
+    shadowColor: '#5e718b',
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.21,
+    shadowRadius: 6.65,
+    elevation: 9,
+  },
+  singleCard: {
+    backgroundColor: '#b4bfc5',
+    borderRadius: 20,
+    padding: 10,
+    justifyContent: 'space-between',
+    marginLeft: 5,
+    marginRight: 5,
+    width: 300,
+    height: 160,
+    shadowColor: '#5e718b',
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.21,
+    shadowRadius: 6.65,
+    elevation: 9,
   },
   cardText: {
     color: '#5e718b',
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Montserrat-Medium',
   },
   cardTitle: {
     color: '#5e718b',
-    fontSize: 13,
+    fontSize: 15,
     fontFamily: 'Montserrat-Bold',
   },
   buttons: {
@@ -137,14 +140,32 @@ const styles = StyleSheet.create({
   wrapperTitle: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    paddingBottom: 5,
+    paddingTop: 5,
+    alignItems: 'center',
   },
   wrapperHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   selectedCard: {
-    borderWidth: 1,
-    borderColor: '#5e718b',
+    color: '#cf7041',
+    fontSize: 15,
+    fontFamily: 'Montserrat-Bold',
+  },
+  wrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  summaryText: {
+    textAlign: 'center',
+  },
+  wrapperCurency: {
+    alignItems: 'center',
+    width: '20%',
+  },
+  wrapperBalance: {
+    width: '80%',
   },
 });
 

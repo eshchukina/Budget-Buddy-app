@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     fontFamily: 'Montserrat-Bold',
+    textTransform: 'lowercase',
   },
 });
 

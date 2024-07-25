@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   View,
@@ -6,26 +6,23 @@ import {
   Dimensions,
   ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
   FlatList,
   Alert,
 } from 'react-native';
 import moment from 'moment';
-import IconMapper from '../IconsMapper/IconMapper';
 import CustomButton from '../buttons/CustomButton';
 import New from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
-import {BooleanContext} from '../context/ClobalProvider';
 import TransactionModal from './TransactionModal';
-import Delete from 'react-native-vector-icons/AntDesign';
 import TransactionModalUpdate from './TransactionModalUpdate';
 import {useTranslation} from 'react-i18next';
+import TransactionItem from './TransactionItem';
 
 interface TransactionTableProps {
   transactions: any[];
-  accountId: string;
+  accountId: number;
   setTransactions: any;
 }
 
@@ -34,7 +31,6 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   transactions,
   setTransactions,
 }) => {
-  const context = useContext(BooleanContext);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
@@ -133,38 +129,14 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
     setLoading(false);
   };
 
-  const renderItem = ({item}: {item: any}) => {
-    const isFutureDate = moment(item.date).isAfter(moment());
-
-    return (
-      <TouchableOpacity onPress={() => handleEditTransaction(item)}>
-        <View
-          style={[
-            styles.transactionRow,
-            isFutureDate ? null : styles.pastTransaction,
-          ]}>
-          <IconMapper tag={item.tag} />
-          <View style={styles.transactionDetails}>
-            <Text style={styles.transactionText}>{item.description}</Text>
-            <Text style={styles.transactionDate}>{formatDate(item.date)}</Text>
-          </View>
-          <Text style={[styles.transactionAmount, {width: width / 4}]}>
-            {item.amount}
-          </Text>
-          <Text style={[styles.transactionBalance, {width: width / 4}]}>
-            {item.balance}
-          </Text>
-
-          <CustomButton
-            icon={<Delete name="delete" size={20} color="#cf7041" />}
-            onPress={() => confirmDeleteTransaction(item.id)}
-            backgroundColor={isFutureDate ? '#f6f6f5' : '#e5c5bd0'}
-          />
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
+  const renderItem = ({item}: {item: any}) => (
+    <TransactionItem
+      item={item}
+      handleEditTransaction={handleEditTransaction}
+      confirmDeleteTransaction={confirmDeleteTransaction}
+      formatDate={formatDate}
+    />
+  );
   if (loading) {
     return (
       <View style={styles.containerSpinner}>
@@ -207,7 +179,6 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
         accountId={accountId}
-        context={context}
         setLoading={setLoading}
         fetchTransactions={fetchTransactions}
       />
@@ -216,7 +187,6 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
         modalVisible={modalVisibleUpdate}
         setModalVisible={setModalVisibleUpdate}
         accountId={accountId}
-        context={context}
         setLoading={setLoading}
         fetchTransactions={fetchTransactions}
         transactionToEdit={transactionToEdit}
@@ -258,57 +228,11 @@ const styles = StyleSheet.create({
     width: '50%',
     paddingHorizontal: 10,
   },
-  tableHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#f6f6f5',
-  },
   headerText: {
     fontSize: 15,
     fontFamily: 'Montserrat-Bold',
     color: '#cf7041',
     textAlign: 'center',
-  },
-  dataWrapper: {},
-  transactionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 5,
-    borderBottomWidth: 1,
-    borderColor: '#e5c5bd',
-  },
-  transactionDetails: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  transactionText: {
-    textTransform: 'lowercase',
-    fontSize: 15,
-    color: '#000',
-    fontFamily: 'Montserrat-Medium',
-  },
-  transactionDate: {
-    fontSize: 12,
-    color: '#666',
-    fontFamily: 'Montserrat-Medium',
-  },
-  transactionAmount: {
-    fontSize: 15,
-    color: '#000',
-    textAlign: 'right',
-    fontFamily: 'Montserrat-Medium',
-  },
-  transactionBalance: {
-    fontSize: 15,
-    color: '#000',
-    textAlign: 'right',
-    marginLeft: 10,
-    fontFamily: 'Montserrat-Medium',
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   modalView: {
     margin: 20,

@@ -6,14 +6,8 @@ import Edit from 'react-native-vector-icons/Entypo';
 import Coin from 'react-native-vector-icons/FontAwesome5';
 import GoalModal from './GoalModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Usd from 'react-native-vector-icons/FontAwesome';
-import EUR from 'react-native-vector-icons/FontAwesome';
-import GBP from 'react-native-vector-icons/FontAwesome';
-import GEL from 'react-native-vector-icons/FontAwesome6';
-import TRY from 'react-native-vector-icons/FontAwesome';
-import RUB from 'react-native-vector-icons/FontAwesome';
+import CurrencyIcon from '../../utils/CurrencyIcon';
 import {useTranslation} from 'react-i18next';
-
 
 interface SavingsGoalProps {
   initialAmount: number;
@@ -29,6 +23,16 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
   const [goalAmount, setGoalAmount] = useState<string>('');
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const {t} = useTranslation();
+  const [goalReached, setGoalReached] = useState<boolean>(false);
+
+  useEffect(() => {
+    const parsedGoal = parseFloat(goalAmount);
+    if (!isNaN(parsedGoal) && initialAmount >= parsedGoal) {
+      setGoalReached(true);
+    } else {
+      setGoalReached(false);
+    }
+  }, [goalAmount, initialAmount]);
 
   useEffect(() => {
     const loadGoalAmount = async () => {
@@ -49,25 +53,6 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
 
     loadGoalAmount();
   }, [accountId]);
-
-  const getCurrencyIcon = (currency: string) => {
-    switch (currency) {
-      case 'USD':
-        return <Usd name="usd" size={15} color="#5e718b" />;
-      case 'EUR':
-        return <EUR name="eur" size={15} color="#5e718b" />;
-      case 'GBP':
-        return <GBP name="gbp" size={15} color="#5e718b" />;
-      case 'GEL':
-        return <GEL name="lari-sign" size={15} color="#5e718b" />;
-      case 'TRY':
-        return <TRY name="try" size={15} color="#5e718b" />;
-      case 'RUB':
-        return <RUB name="rub" size={15} color="#5e718b" />;
-      default:
-        return null;
-    }
-  };
 
   const saveGoalAmount = async (amount: string) => {
     try {
@@ -98,10 +83,14 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
 
       <View style={styles.summaryContainer}>
         <View style={styles.progressNumber}>
-          <Text style={styles.summaryText}>{t('saved')} {initialAmount} {getCurrencyIcon(currency)}</Text>
+          <Text style={styles.summaryText}>
+            {t('saved')} {initialAmount}{' '}
+            <CurrencyIcon currency={currency} size={15} />{' '}
+          </Text>
           <Coin name="coins" size={25} color="#e2a55e" />
           <Text style={styles.summaryText}>
-          {t('remaining')} {remainingAmount.toFixed(0) } {getCurrencyIcon(currency)}
+            {t('remaining')} {remainingAmount.toFixed(0)}{' '}
+            <CurrencyIcon currency={currency} size={15} />
           </Text>
         </View>
       </View>
@@ -114,12 +103,21 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
           height={10}
           borderRadius={10}
         />
-        {goalAmount && <Text style={styles.summaryText}>{goalAmount} {getCurrencyIcon(currency)}</Text>}
+        {goalAmount && (
+          <Text style={styles.summaryText}>
+            {goalAmount} <CurrencyIcon currency={currency} size={15} />
+          </Text>
+        )}
         <CustomButton
           icon={<Edit name="edit" size={25} color="#96aa9a" />}
           onPress={() => setIsModalVisible(true)}
         />
       </View>
+      {goalReached && (
+        <View style={styles.congratulationContainer}>
+          <Text style={styles.congratulationText}>{t('goalReached')}</Text>
+        </View>
+      )}
       <GoalModal
         visible={isModalVisible}
         goalAmount={goalAmount}
@@ -127,7 +125,6 @@ const SavingsGoal: React.FC<SavingsGoalProps> = ({
         onSave={handleSave}
         onClose={() => setIsModalVisible(false)}
       />
-  
     </View>
   );
 };
@@ -145,7 +142,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 20,
     color: '#5e718b',
-    fontFamily: "Montserrat-Bold"
+    fontFamily: 'Montserrat-Bold',
   },
   headerTitle: {
     flexDirection: 'row',
@@ -161,8 +158,8 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     fontSize: 15,
-    color:"#5e718b",
-    fontFamily: "Montserrat-Medium"
+    color: '#5e718b',
+    fontFamily: 'Montserrat-Medium',
   },
   progressNumber: {
     flexDirection: 'row',
@@ -174,6 +171,16 @@ const styles = StyleSheet.create({
   currencyIcon: {
     marginTop: 10,
     alignItems: 'center',
+  },
+  congratulationContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  congratulationText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#e2a55e',
+    fontFamily: 'Montserrat-Bold',
   },
 });
 

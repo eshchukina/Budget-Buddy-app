@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,15 +14,14 @@ import {RootStackParamList} from '../navigation/RootNavigator';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import Button from '../buttons/Buttons';
 import Header from '../text/Header';
-import Back from 'react-native-vector-icons/Ionicons';
 import Eye from 'react-native-vector-icons/Entypo';
+import {useFocusEffect} from '@react-navigation/native';
 
 import {
   validateEmail,
   validatePassword,
   validateName,
 } from '../utils/validation';
-import CustomButton from '../buttons/CustomButton';
 import {useTranslation} from 'react-i18next';
 
 type RegisterScreenNavigationProp = NativeStackNavigationProp<
@@ -43,12 +42,16 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
   const [passwordVisible, setPasswordVisible] = useState(false);
   const {t} = useTranslation();
 
-  const handleRegistration = async () => {
-    setNameError('');
-    setEmailError('');
-    setPasswordError('');
-    setErrorText('');
+  useFocusEffect(
+    useCallback(() => {
+      setEmail('');
+      setPassword('');
+      setPasswordError('');
+      setErrorText('');
+    }, []),
+  );
 
+  const handleRegistration = async () => {
     if (!validateName(name)) {
       setNameError(
         'Name should be at least 2 characters long and contain only letters',
@@ -57,13 +60,13 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
     }
 
     if (!validateEmail(email)) {
-      setEmailError('Invalid email address.');
+      setEmailError('Invalid email address');
       return;
     }
 
     if (!validatePassword(password)) {
       setPasswordError(
-        'Password must be at least 6 characters and contain at least one number and one letter.',
+        'Password must be at least 6 characters and contain at least one number and one letter',
       );
       return;
     }
@@ -74,23 +77,20 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
       const response = await axios.post(
         `${REACT_APP_API_URL_PRODUCTION}user`,
         newUser,
-        {
-          headers: {'Content-Type': 'application/json'},
-        },
+        {headers: {'Content-Type': 'application/json'}},
       );
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         setPassword('');
         setEmail('');
         setName('');
-
         navigation.navigate('Login');
       } else {
-        setErrorText('Registration failed. Please try again.');
+        setErrorText('Registration failed. Please try again');
       }
     } catch (error) {
       setErrorText(
-        'Error occurred during registration. Please try again later.',
+        'Error occurred during registration. Please try again later',
       );
       console.error('Error:', error);
     }
@@ -103,16 +103,8 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-        <View style={styles.backButton}>
-          <CustomButton
-            icon={<Back name="chevron-back" size={30} color="#96aa9a" />}
-            onPress={() => navigation.navigate('Home')}
-          />
-        </View>
-
         <View style={styles.inputContainer}>
           <Header text={t('register')} color="#e5c5bd" size={24} />
-
           <TextInput
             style={styles.input}
             placeholder="name"
@@ -184,7 +176,7 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: '#f6f6f5',
     paddingBottom: 30,
@@ -234,10 +226,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorText: {
-    color: '#5e718b',
-    fontSize: 9,
+    color: '#000',
+    marginBottom: 10,
+    fontSize: 10,
     textAlign: 'center',
-    bottom: 10,
     fontFamily: 'Montserrat-Medium',
   },
 });

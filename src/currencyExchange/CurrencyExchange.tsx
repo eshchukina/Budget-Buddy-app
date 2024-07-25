@@ -11,7 +11,10 @@ interface CurrencyExchangeProps {
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const CurrencyExchange: React.FC<CurrencyExchangeProps> = ({ modalVisible, setModalVisible }) => {
+const CurrencyExchange: React.FC<CurrencyExchangeProps> = ({
+  modalVisible,
+  setModalVisible,
+}) => {
   const [amount1, setAmount1] = useState('');
   const [amount2, setAmount2] = useState('');
   const [conversionRates, setConversionRates] = useState({});
@@ -34,7 +37,7 @@ const CurrencyExchange: React.FC<CurrencyExchangeProps> = ({ modalVisible, setMo
         headers: headersWithToken,
       });
       if (!response.ok) {
-        console.log('Error fetching conversion rates.');
+        //console.log('Error fetching conversion rates.');
 
         return;
       }

@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     color: '#f6f6f5',
     fontSize: 16,
     textAlign: 'center',
+    textTransform: 'lowercase',
   },
 });
 

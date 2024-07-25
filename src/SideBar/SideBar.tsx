@@ -1,11 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {View, StyleSheet, Text, Image} from 'react-native';
+import {View, StyleSheet, Text, Image, Linking} from 'react-native';
 import CustomButton from '../buttons/CustomButton';
 import Feedback from 'react-native-vector-icons/MaterialIcons';
 import Mail from 'react-native-vector-icons/Entypo';
 import TextD from 'react-native-vector-icons/Ionicons';
 import Info from 'react-native-vector-icons/FontAwesome6';
 import Share from 'react-native-vector-icons/FontAwesome5';
+import Exit from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import i18n from '../translation/i18n';
 import ToggleSwitch from 'toggle-switch-react-native';
@@ -14,16 +15,18 @@ import shareApp from '../utils/shareApp';
 import reviewPage from '../utils/reviewApp';
 import sendEmail from '../utils/sendEmail';
 import ModalInfo from '../modal/ModalInfo';
-
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../provider/AuthProvider';
 interface SideBarProps {
   onClose: () => void;
 }
 
 const SideBar: React.FC<SideBarProps> = ({}) => {
   const {t} = useTranslation();
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-
+  const navigation = useNavigation();
+  const { logout } = useAuth();
   const openModal = () => setModalVisible(true);
   const closeModal = () => setModalVisible(false);
 
@@ -36,6 +39,8 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
           setIsEnabled(newState);
           const newLang = newState ? 'en' : 'ru';
           i18n.changeLanguage(newLang);
+        } else {
+          i18n.changeLanguage('en');
         }
       } catch (error) {
         console.error('Failed to load switch state', error);
@@ -56,6 +61,21 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
       console.error('Failed to save switch state', error);
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
+  const handleButtonPress = () => {
+    const url =
+      'https://www.freeprivacypolicy.com/live/0e98da1d-0096-4437-b41a-9f3a8500c03d';
+    Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+  };
+
 
   return (
     <View style={styles.container}>
@@ -107,7 +127,7 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
       <View style={styles.wrapper}>
         <CustomButton
           icon={<TextD name="document-text" size={30} color="#e2a55e" />}
-          onPress={() => console.log('df')}
+          onPress={handleButtonPress}
           backgroundColor="#5e718b"
           text="politic privacy"
         />
@@ -120,11 +140,17 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
           text={t('info')}
         />
       </View>
+      <View style={styles.wrapper}>
+        <CustomButton
+          icon={<Exit name="exit" size={40} color="#e2a55e" />}
+          onPress={handleLogout}
+          backgroundColor="#5e718b"
+          text={t('exit')}
+        />
+      </View>
       <ModalInfo
         visible={modalVisible}
         onClose={closeModal}
-        title="Модальное Окно"
-        content="Это содержимое модального окна."
       />
     </View>
   );

@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">BudgetBuddyApp</string>
+    <string name="app_name">Budget Buddy app</string>
          <color name="app_background">#5e718b</color>
 </resources>
