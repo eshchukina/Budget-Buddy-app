@@ -9,20 +9,19 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import SideBar from '../sideBar/SideBar';
-import AccountDetails from '../accounts/AccountDetails';
-import TransactionTable from '../Tables/TransactionTable';
-import SavingsGoal from '../accounts/SavingsGoal/SavingsGoal';
-import Overlay from '../utils/Overlay';
+import SideBar from '../components/sideBar/SideBar';
+import AccountDetails from '../components/account/AccountDetails';
+import TransactionTable from '../components/modal/TransactionTable';
+import SavingsGoal from '../components/savingsGoal/SavingsGoal';
+import Overlay from '../utils/additionalComponent/Overlay';
 import DetailsScreen from './DetailsScreen';
-import CustomButton from '../buttons/CustomButton';
+import CustomButton from '../components/buttons/CustomButton';
 import Menu from 'react-native-vector-icons/Feather';
 import Home from 'react-native-vector-icons/AntDesign';
 import moment from 'moment';
 import {useTranslation} from 'react-i18next';
 import Change from 'react-native-vector-icons/MaterialIcons';
 import Cahrt from 'react-native-vector-icons/Fontisto';
-
 const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen: React.FC = () => {

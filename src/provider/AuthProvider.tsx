@@ -6,12 +6,12 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  token: any;
-  login: (id: string) => Promise<void>;
+  token: string | null;
+  login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -35,10 +35,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      const token = await AsyncStorage.getItem('accessToken');
-      if (token) {
+      const storedToken = await AsyncStorage.getItem('accessToken');
+      if (storedToken) {
         setIsAuthenticated(true);
-        setToken(token);
+        setToken(storedToken);
       } else {
         setIsAuthenticated(false);
       }
@@ -49,21 +49,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
   if (isAuthenticated === null) {
     return (
       <View style={styles.container}>
-        {/* <ActivityIndicator size="large" color="#606e52" /> */}
+        <ActivityIndicator size="large" color="#606e52" />
       </View>
     );
   }
 
-  const login = async (token): Promise<void> => {
-    await AsyncStorage.setItem('accessToken', token);
-    setToken(token);
+  const login = async (newToken: string): Promise<void> => {
+   // await AsyncStorage.setItem('accessToken', newToken);
+    setToken(newToken);
     setIsAuthenticated(true);
   };
 
   const logout = async (): Promise<void> => {
     setIsAuthenticated(false);
     await AsyncStorage.removeItem('accessToken');
-
+    await AsyncStorage.removeItem('refreshToken');
+    await AsyncStorage.removeItem('expiresIn');
+    await AsyncStorage.removeItem('accountId');
     setToken(null);
   };
 

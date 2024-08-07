@@ -1,8 +1,9 @@
-import { Share, Platform } from 'react-native';
+import {Share, Platform} from 'react-native';
 
 const shareApp = async (): Promise<void> => {
   try {
-    const message = 'Check out this app! https://play.google.com/store/apps/details?id=com.budgetbuddyapp';
+    const message =
+      'Check out this app! https://play.google.com/store/apps/details?id=com.budgetbuddyapp';
     if (Platform.OS === 'ios') {
       await Share.share({
         message,

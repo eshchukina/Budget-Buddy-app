@@ -2,11 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 
-export const refreshToken = async (
-  setRefreshIntervalId: React.Dispatch<
-    React.SetStateAction<NodeJS.Timeout | null>
-  >,
-) => {
+export const refreshToken = async (): Promise<boolean> => {
   try {
     const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
     if (storedRefreshToken) {
@@ -21,26 +17,29 @@ export const refreshToken = async (
         await AsyncStorage.setItem('accessToken', accessToken);
         await AsyncStorage.setItem('refreshToken', refreshToken);
         await AsyncStorage.setItem('expiresIn', expires_in.toString());
-
-        const expiresInMilliseconds = expires_in * 1000;
-        const refreshTime = expiresInMilliseconds - 60000;
-
-        if (setRefreshIntervalId) {
-          clearTimeout(setRefreshIntervalId);
-        }
-        const newIntervalId = setTimeout(async () => {
-          await refreshToken(setRefreshIntervalId);
-          console.log('Token refreshed');
-        }, refreshTime);
-
-        setRefreshIntervalId(newIntervalId);
+        console.log('REFRESH');
+        return true;
       } else {
         console.log('Token refresh failed with status:', response.status);
+        return false;
       }
     } else {
       console.log('Refresh token is missing');
+      return false;
     }
   } catch (error) {
-    console.error('Error refreshing token:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
+      if (error.response?.status === 401) {
+        await AsyncStorage.removeItem('accessToken');
+        await AsyncStorage.removeItem('refreshToken');
+        await AsyncStorage.removeItem('expiresIn');
+      }
+    } else {
+      console.error('Unexpected error:', error);
+    }
+    return false;
   }
 };

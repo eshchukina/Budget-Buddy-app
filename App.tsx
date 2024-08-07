@@ -10,22 +10,68 @@ const App: React.FC = () => {
   const [refreshIntervalId, setRefreshIntervalId] =
     useState<NodeJS.Timeout | null>(null);
 
+  const setupRefreshInterval = async (refreshTime: number) => {
+    if (refreshIntervalId) {
+      clearInterval(refreshIntervalId);
+    }
+
+    const intervalId = setInterval(async () => {
+      const refreshSuccess = await refreshToken();
+      if (refreshSuccess) {
+        const newExpires = await AsyncStorage.getItem('expiresIn');
+        if (newExpires) {
+          const newExpiresInMilliseconds = parseInt(newExpires, 10);
+          const newCurrentTime = Date.now();
+          let newRefreshTime =
+            newExpiresInMilliseconds - newCurrentTime - 5 * 60 * 1000;
+          newRefreshTime = Math.max(newRefreshTime, 6000);
+
+          console.log('Updated timeLeft:', newRefreshTime);
+
+          clearInterval(intervalId);
+          setupRefreshInterval(newRefreshTime);
+        }
+      } else {
+        console.error('Token refresh failed');
+        await AsyncStorage.removeItem('accessToken');
+        await AsyncStorage.removeItem('refreshToken');
+        await AsyncStorage.removeItem('expiresIn');
+      }
+    }, refreshTime);
+
+    setRefreshIntervalId(intervalId);
+  };
+
   useEffect(() => {
-    const checkTokenAndRefresh = async () => {
+    const initializeTokenRefresh = async () => {
       const token = await AsyncStorage.getItem('accessToken');
       if (token) {
-        await refreshToken(setRefreshIntervalId);
+        const expires = await AsyncStorage.getItem('expiresIn');
+
+        if (expires) {
+          const expiresInMilliseconds = parseInt(expires, 10);
+          const currentTime = Date.now();
+
+          let refreshTime = expiresInMilliseconds - currentTime - 5 * 60 * 1000;
+          refreshTime = Math.max(refreshTime, 60000);
+
+          console.log('Initial timeLeft:', refreshTime);
+
+          setupRefreshInterval(refreshTime);
+        } else {
+          console.error('Expiration time is missing');
+        }
       }
     };
 
-    checkTokenAndRefresh();
+    initializeTokenRefresh();
 
     return () => {
       if (refreshIntervalId) {
-        clearTimeout(refreshIntervalId);
+        clearInterval(refreshIntervalId);
       }
     };
-  }, [refreshIntervalId]);
+  }, []);
 
   useEffect(() => {
     SplashScreen.hide();

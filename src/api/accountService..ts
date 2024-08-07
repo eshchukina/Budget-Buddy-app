@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import {Transaction, Account} from '../types/types';
+import {Alert} from 'react-native';
 
 interface FetchTransactionsParams {
   accountId: number;
@@ -46,7 +47,7 @@ export const openFirstAccount = async (
       console.log('Failed to fetch account statement');
     }
   } catch (error) {
-    console.error('Error fetching account statement:', error);
+    console.error('Error fetching account sssstatement:', error);
   }
   setLoading(false);
 };
@@ -130,7 +131,6 @@ export const saveEditedAccount = async (
   editAccountId: number,
   editedAccountName: string,
   editedAccountCurrency: string,
-  setAccounts: React.Dispatch<React.SetStateAction<Account[]>>,
   setEditModalVisible: React.Dispatch<React.SetStateAction<boolean>>,
   fetchAccounts: () => Promise<void>,
 ) => {
@@ -170,7 +170,6 @@ export const saveEditedAccount = async (
 export const fetchTransactions = async ({
   accountId,
   setAccountId,
-  setCurrency,
   setSelectedAccountId,
   setTransactions,
 }: FetchTransactionsParams) => {
@@ -193,16 +192,79 @@ export const fetchTransactions = async ({
     );
 
     setAccountId(accountId);
-    setCurrency(response.data.currency);
     setSelectedAccountId(accountId);
 
     if (response.status === 200 || response.status === 201) {
-      const transactions = (response.data as Transaction[]) || [];
+      const transactions = response.data || [];
+
       setTransactions(transactions);
     } else {
-      console.log('Failed to fetch account statement');
+      console.log(
+        'Failed to fetch account statement, Status Code:',
+        response.status,
+      );
     }
   } catch (error) {
     console.error('Error fetching account statement:', error);
   }
+};
+
+export const handleDelete = async (
+  account: Account,
+  accounts: Account[],
+  setAccounts: React.Dispatch<React.SetStateAction<Account[]>>,
+  t: any,
+) => {
+  Alert.alert(
+    '',
+    t('alertAc'),
+    [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem('accessToken');
+            if (!token) throw new Error('No token found');
+
+            const headersWithToken = {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            };
+
+            const response = await fetch(
+              `${REACT_APP_API_URL_PRODUCTION}accounts/${account.id}`,
+              {
+                method: 'DELETE',
+                headers: headersWithToken,
+              },
+            );
+
+            const responseBody = await response.text();
+            if (response.ok) {
+              const updatedAccounts = accounts.filter(
+                acc => acc.id !== account.id,
+              );
+              setAccounts(updatedAccounts);
+              console.log('Account deleted');
+            } else {
+              console.error(
+                'Failed to delete account:',
+                response.status,
+                responseBody,
+              );
+            }
+          } catch (error) {
+            console.error('Error deleting account:', error);
+          }
+        },
+        style: 'destructive',
+      },
+    ],
+    {cancelable: false},
+  );
 };

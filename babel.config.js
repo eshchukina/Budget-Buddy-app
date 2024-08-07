@@ -9,6 +9,6 @@ module.exports = {
       safe: false,
       allowUndefined: true
     }],
-    'react-native-reanimated/plugin' // Проверьте наличие этой строки
+    'react-native-reanimated/plugin'
   ]
 };
