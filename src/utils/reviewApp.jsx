@@ -1,16 +1,16 @@
-import { Linking } from "react-native";
+import {Linking} from 'react-native';
 
 const reviewPage = () => {
   const reviewPageURL =
-    "https://play.google.com/store/apps/details?id=com.budgetbuddyapp";
+    'https://play.google.com/store/apps/details?id=com.budgetbuddyapp';
 
   Linking.openURL(reviewPageURL)
-    .then((supported) => {
+    .then(supported => {
       if (!supported) {
-        console.log("Не удалось открыть страницу отзывов в Google Play Store");
+        console.log('Failed to open the reviews page in the Google Play Store');
       }
     })
-    .catch((err) => console.error("Ошибка при открытии ссылки: ", err));
+    .catch(err => console.error('Error review: ', err));
 };
 
 export default reviewPage;

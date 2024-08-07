@@ -12,8 +12,8 @@ import axios from 'axios';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
-import Button from '../buttons/Buttons';
-import Header from '../text/Header';
+import Button from '../components/buttons/Buttons';
+import Header from '../components/header/Header';
 import Eye from 'react-native-vector-icons/Entypo';
 import {useFocusEffect} from '@react-navigation/native';
 

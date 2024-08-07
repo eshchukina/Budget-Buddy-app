@@ -13,14 +13,14 @@ import axios from 'axios';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
-import Button from '../buttons/Buttons';
-import Header from '../text/Header';
+import Button from '../components/buttons/Buttons';
+import Header from '../components/header/Header';
 import {validateEmail, validatePassword} from '../utils/validation';
 import Eye from 'react-native-vector-icons/Entypo';
 import {useTranslation} from 'react-i18next';
 import {useFocusEffect} from '@react-navigation/native';
 import {useAuth} from '../provider/AuthProvider';
-import ModalInfo from '../modal/ModalInfo';
+import ModalInfo from '../components/modal/ModalInfo';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -37,8 +37,6 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
   const [errorText, setErrorText] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const {t} = useTranslation();
-  const [refreshIntervalId, setRefreshIntervalId] =
-    useState<NodeJS.Timeout | null>(null);
   const {login} = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -52,13 +50,7 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
     };
 
     showWelcomeModal();
-
-    return () => {
-      if (refreshIntervalId) {
-        clearTimeout(refreshIntervalId);
-      }
-    };
-  }, [refreshIntervalId]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -92,26 +84,17 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
         {email, password},
       );
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         const {accessToken, refreshToken, expires_in, id, name} = response.data;
         await AsyncStorage.setItem('accessToken', accessToken);
         await AsyncStorage.setItem('refreshToken', refreshToken);
         await AsyncStorage.setItem('expiresIn', expires_in.toString());
         await AsyncStorage.setItem('accountId', id.toString());
         await AsyncStorage.setItem('name', name);
-        const expiresInMilliseconds = expires_in * 1000;
-        const timeLeft = expiresInMilliseconds - Date.now();
-        const refreshTime = timeLeft - 60000;
-        login(accessToken);
-        if (refreshIntervalId) {
-          clearTimeout(refreshIntervalId);
-        }
-        const newIntervalId = setTimeout(async () => {
-          await refreshToken();
-          console.log('Token refreshed');
-        }, refreshTime);
 
-        setRefreshIntervalId(newIntervalId);
+        login(accessToken);
+        console.log(response.status)
+   
       } else {
         setErrorText('Invalid email or password. Please try again');
       }

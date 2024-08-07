@@ -1,7 +1,7 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuth } from '../provider/AuthProvider';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useAuth} from '../provider/AuthProvider';
 import HomeScreen from '../screens/HomeScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -18,7 +18,7 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
-  const { isAuthenticated } = useAuth();
+  const {isAuthenticated} = useAuth();
 
   return (
     <NavigationContainer>
@@ -26,8 +26,7 @@ const RootNavigator = () => {
         screenOptions={{
           headerShown: false,
           animation: 'none',
-        }}
-      >
+        }}>
         {!isAuthenticated ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
