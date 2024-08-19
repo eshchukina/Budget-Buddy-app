@@ -2,7 +2,7 @@ import {Linking} from 'react-native';
 
 const reviewPage = () => {
   const reviewPageURL =
-    'https://play.google.com/store/apps/details?id=com.budgetbuddyapp';
+    'https://play.google.com/store/apps/details?id=com.uneteambudgetbuddy';
 
   Linking.openURL(reviewPageURL)
     .then(supported => {

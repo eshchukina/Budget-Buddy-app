@@ -3,6 +3,7 @@ import axios from 'axios';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import {Transaction, Account} from '../types/types';
 import {Alert} from 'react-native';
+import { refreshTokenGet } from './tokenService';
 
 interface FetchTransactionsParams {
   accountId: number;
@@ -52,7 +53,7 @@ export const openFirstAccount = async (
   setLoading(false);
 };
 
-export const fetchAccounts = async () => {
+export const fetchAccounts = async (): Promise<any[]> => {
   try {
     const token = await AsyncStorage.getItem('accessToken');
     if (!token) throw new Error('No token found');
@@ -64,22 +65,28 @@ export const fetchAccounts = async () => {
 
     const response = await axios.get(
       `${REACT_APP_API_URL_PRODUCTION}accounts`,
-      {
-        headers: headersWithToken,
-      },
+      { headers: headersWithToken },
     );
 
     if (response.status === 200) {
       return response.data;
     } else {
+      await refreshTokenGet();
       console.error('Failed to fetch accounts');
       return [];
     }
   } catch (error) {
     console.error('Error fetching accounts:', error);
-    return [];
+
+    const refreshSuccess = await refreshTokenGet();
+    if (refreshSuccess) {
+      return fetchAccounts();
+    } else {
+      return [];
+    }
   }
 };
+
 
 export const saveNewAccount = async (
   newAccountName: string,
@@ -161,7 +168,7 @@ export const saveEditedAccount = async (
     }
   } catch (error) {
     console.error('Error updating account:', error);
-    console.error('Server response:', error.response?.data);
+
   } finally {
     setEditModalVisible(false);
   }
@@ -205,6 +212,7 @@ export const fetchTransactions = async ({
       );
     }
   } catch (error) {
+    
     console.error('Error fetching account statement:', error);
   }
 };

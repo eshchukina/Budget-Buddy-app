@@ -230,7 +230,7 @@ export const fetchTransactions = async (
     }
   } catch (error) {
     console.error(
-      'Error fetching account statement:',
+      'Error fetching account statementtt:',
       error.response?.data || error.message,
     );
   } finally {
