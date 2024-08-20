@@ -3,6 +3,7 @@ import axios from 'axios';
 import moment from 'moment';
 import {REACT_APP_API_URL_PRODUCTION} from '@env';
 import {Transaction} from '../types/types';
+import {Dispatch, SetStateAction} from 'react';
 
 interface TransactionToEdit {
   id: string;
@@ -21,7 +22,7 @@ export const createNewTransaction = async ({
   setAmount,
   setErrorText,
 }: {
-  accountId: number;
+  accountId: number | null;
   description: string;
   tag: string;
   amount: string;
@@ -94,14 +95,14 @@ export const updateTransaction = async ({
   setAmount,
   setErrorText,
 }: {
-  accountId: number;
+  accountId: number | null;
   description: string;
   tag: string;
   amount: string;
   date: Date;
   transactionToEdit: TransactionToEdit;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setLoading: Dispatch<SetStateAction<boolean>>;
   fetchTransactions: () => void;
   setDescription: React.Dispatch<React.SetStateAction<string>>;
   setAmount: React.Dispatch<React.SetStateAction<string>>;
@@ -230,7 +231,7 @@ export const fetchTransactions = async (
     }
   } catch (error) {
     console.error(
-      'Error fetching account statementtt:',
+      'Error fetching account statement:',
       error.response?.data || error.message,
     );
   } finally {

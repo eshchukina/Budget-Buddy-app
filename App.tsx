@@ -27,7 +27,7 @@ const App: React.FC = () => {
           newRefreshTime = Math.max(newRefreshTime, 60000);
  
           console.log('Updated timeLeft:', newRefreshTime);
- 
+    
           clearInterval(intervalId);
           setupRefreshInterval(newRefreshTime);
         }
@@ -101,4 +101,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default App
+export default App;

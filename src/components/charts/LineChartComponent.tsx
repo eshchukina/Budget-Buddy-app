@@ -14,7 +14,7 @@ const LineChartComponent: React.FC<LineChartComponentProps> = ({
 }) => {
   const {t} = useTranslation();
   if (!currency) {
-    return <Text>{t('loading')}</Text>;
+
   }
   return (
     <View>

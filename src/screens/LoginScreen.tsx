@@ -93,13 +93,12 @@ const LoginScreen: React.FC<{navigation: LoginScreenNavigationProp}> = ({
         await AsyncStorage.setItem('name', name);
 
         login(accessToken);
-        console.log(response.status)
-   
+        console.log(response.status);
       } else {
         setErrorText('Invalid email or password. Please try again');
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Erroreeee:', error);
       setErrorText('Error occurred during login. Please try again later');
     }
   };

@@ -5,7 +5,8 @@ import Delete from 'react-native-vector-icons/AntDesign';
 import Edit from 'react-native-vector-icons/FontAwesome';
 import {useTranslation} from 'react-i18next';
 import CurrencyIcon from '../../utils/additionalComponent/CurrencyIcon';
-import { fetchTransactions } from '../../api/accountService.';
+import {fetchTransactions} from '../../api/accountService.';
+
 interface AccountCardProps {
   account: {
     id: number;
@@ -16,7 +17,7 @@ interface AccountCardProps {
   };
   setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
   handleDelete: (id: number) => void;
-  setAccountId: React.Dispatch<React.SetStateAction<number>>;
+  setAccountId: React.Dispatch<React.SetStateAction<number | null>>;
   onEdit: (id: number) => void;
   setCurrency: React.Dispatch<React.SetStateAction<string>>;
   selectedAccountId: number | null;
@@ -41,10 +42,10 @@ const AccountCard: React.FC<AccountCardProps> = ({
     await fetchTransactions({
       accountId: account.id,
       setAccountId,
-      setCurrency,
       setSelectedAccountId,
       setTransactions,
     });
+    setCurrency(account.currency);
   };
 
   const cardStyle = length === 1 ? styles.singleCard : styles.card;

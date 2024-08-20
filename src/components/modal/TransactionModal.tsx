@@ -17,7 +17,7 @@ import {createNewTransaction} from '../../api/transactionService';
 interface TransactionModalProps {
   modalVisible: boolean;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  accountId: number;
+  accountId: number | null;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   fetchTransactions: () => void;
 }

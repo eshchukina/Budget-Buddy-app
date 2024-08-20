@@ -12,15 +12,18 @@ import {
 import moment from 'moment';
 import CustomButton from '../buttons/CustomButton';
 import New from 'react-native-vector-icons/Ionicons';
-import TransactionModal from '../tables/TransactionModal';
+import TransactionModal from './TransactionModal';
 import TransactionModalUpdate from './TransactionModalUpdate';
 import {useTranslation} from 'react-i18next';
 import TransactionItem from '../tables/TransactionItem';
-import {deleteTransaction, fetchTransactions} from '../../api/transactionService';
+import {
+  deleteTransaction,
+  fetchTransactions,
+} from '../../api/transactionService';
 
 interface TransactionTableProps {
   transactions: any[];
-  accountId: number;
+  accountId: number | null;
   setTransactions: any;
 }
 
@@ -29,7 +32,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   transactions,
   setTransactions,
 }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisibleUpdate, setModalVisibleUpdate] = useState(false);
   const {t} = useTranslation();

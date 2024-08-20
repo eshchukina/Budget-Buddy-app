@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   input: {
     fontFamily: 'Montserrat-Medium',
-    color: '#5e718b', // цвет текста
+    color: '#5e718b',
     height: 40,
     width: '100%',
     borderColor: '#ccc',

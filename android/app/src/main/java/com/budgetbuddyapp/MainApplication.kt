@@ -1,4 +1,4 @@
-package com.budgetbuddyapp
+package com.uneteambudgetbuddy
 
 import android.app.Application
 import com.facebook.react.PackageList

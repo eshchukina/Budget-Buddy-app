@@ -24,7 +24,6 @@ const PieChartComponent: React.FC<PieChartComponentProps> = ({groupedData}) => {
           showText={false}
           fontStyle="oblique"
           font="Montserrat-Medium"
-          extraRadiusForFocused={120 / 10}
           sectionAutoFocus={true}
           shadow={false}
           strokeWidth={0}

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import SideBar from '../components/sideBar/SideBar';
 import AccountDetails from '../components/account/AccountDetails';
+
 import TransactionTable from '../components/modal/TransactionTable';
 import SavingsGoal from '../components/savingsGoal/SavingsGoal';
 import Overlay from '../utils/additionalComponent/Overlay';
@@ -26,7 +27,7 @@ const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen: React.FC = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [accountId, setAccountId] = useState<number>(0);
+  const [accountId, setAccountId] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [savingsGoalAmount, setSavingsGoalAmount] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
@@ -34,7 +35,9 @@ const HomeScreen: React.FC = () => {
   const [currency, setCurrency] = useState('');
   const [amounts, setAmounts] = useState<number[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const [monthlyAmounts, setMonthlyAmounts] = useState([]);
+  const [monthlyAmounts, setMonthlyAmounts] = useState<
+    {month: string; amount: number}[]
+  >([]);
   const {t} = useTranslation();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [showNotInfo, setShowNotInfo] = useState(false);
@@ -52,21 +55,44 @@ const HomeScreen: React.FC = () => {
   }, [transactions]);
 
   useEffect(() => {
+    const monthAbbreviations: {[key: string]: string} = {
+      '01': 'j',
+      '02': 'f',
+      '03': 'm',
+      '04': 'a',
+      '05': 'm',
+      '06': 'j',
+      '07': 'j',
+      '08': 'a',
+      '09': 's',
+      '10': 'o',
+      '11': 'n',
+      '12': 'd',
+    };
+
     const allMonths = Array.from({length: 12}, (_, index) =>
       moment().startOf('year').add(index, 'month').format('YYYY-MM'),
     );
 
+    const monthlyTotals: {[key: string]: number} = {};
+
+    const filteredTransactions = transactions.filter(
+      transaction => transaction.tag !== 'salary',
+    );
+
+    filteredTransactions.forEach(transaction => {
+      const month = moment(transaction.date).format('YYYY-MM');
+      if (!monthlyTotals[month]) {
+        monthlyTotals[month] = 0;
+      }
+      monthlyTotals[month] += Math.abs(transaction.amount);
+    });
+
     const updatedMonthlyAmounts = allMonths.map(month => {
-      const existingMonthData = transactions.find(item => {
-        const transactionMonth = moment(item.date).format('YYYY-MM');
-        return transactionMonth === month && item.tag !== 'salary';
-      });
-
-      const amount = existingMonthData ? Math.abs(existingMonthData.amount) : 0;
-
+      const monthNumber = moment(month, 'YYYY-MM').format('MM');
       return {
-        month: moment(month, 'YYYY-MM').format('MMM'),
-        amount: amount,
+        month: monthAbbreviations[monthNumber] || '',
+        amount: monthlyTotals[month] || 0,
       };
     });
 

@@ -26,7 +26,7 @@ import {
 interface AccountDetailsProps {
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   toggleSideBar: () => void;
-  setAccountId: React.Dispatch<React.SetStateAction<number>>;
+  setAccountId: React.Dispatch<React.SetStateAction<number | null>>;
   setCurrency: React.Dispatch<React.SetStateAction<string>>;
   currencyModalVisible: boolean;
   setCurrencyModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -126,7 +126,6 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
         editAccountId,
         editedAccountName,
         editedAccountCurrency,
-        setAccounts,
         setEditModalVisible,
         fetchAccountsData,
       );
@@ -176,9 +175,9 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
               setEditModalVisible(true);
               setEditedAccountName(item.name);
             }}
-            setCurrency={setCurrency}
             handleDelete={onDelete}
             setAccountId={setAccountId}
+            setCurrency={setCurrency}
             selectedAccountId={selectedAccountId}
             setSelectedAccountId={setSelectedAccountId}
           />

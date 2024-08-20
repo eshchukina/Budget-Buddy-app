@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { REACT_APP_API_URL_PRODUCTION } from '@env';
+import {REACT_APP_API_URL_PRODUCTION} from '@env';
 
 export const refreshTokenGet = async (): Promise<boolean> => {
   try {
@@ -10,13 +10,17 @@ export const refreshTokenGet = async (): Promise<boolean> => {
       return false;
     }
 
+    console.log('Attempting to refresh token with:', storedRefreshToken);
+
     const response = await axios.post(
       `${REACT_APP_API_URL_PRODUCTION}refresh`,
-      { refreshToken: storedRefreshToken },
+      {refreshToken: storedRefreshToken},
     );
 
+    console.log('Server response:', response.data);
+
     if (response.status === 200) {
-      const { accessToken, refreshToken, expires_in } = response.data;
+      const {accessToken, refreshToken, expires_in} = response.data;
 
       await AsyncStorage.setItem('accessToken', accessToken);
       await AsyncStorage.setItem('refreshToken', refreshToken);
@@ -29,7 +33,10 @@ export const refreshTokenGet = async (): Promise<boolean> => {
       return false;
     }
   } catch (error) {
-    console.error('Error during token refresh:', error);
+    console.error(
+      'Error during token refresh:',
+      error.response?.data || error.message,
+    );
     return false;
   }
 };

@@ -79,6 +79,7 @@ const RegisterScreen: React.FC<{navigation: RegisterScreenNavigationProp}> = ({
         newUser,
         {headers: {'Content-Type': 'application/json'}},
       );
+      console.log(response);
 
       if (response.status === 201) {
         setPassword('');

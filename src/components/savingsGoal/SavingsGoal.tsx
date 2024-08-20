@@ -11,7 +11,7 @@ import {useTranslation} from 'react-i18next';
 
 interface SavingsGoalProps {
   initialAmount: number;
-  accountId: number;
+  accountId: number | null;
   currency: string;
 }
 

@@ -7,8 +7,8 @@ import { refreshTokenGet } from './tokenService';
 
 interface FetchTransactionsParams {
   accountId: number;
-  setAccountId: React.Dispatch<React.SetStateAction<number>>;
-  setCurrency: React.Dispatch<React.SetStateAction<string>>;
+  setAccountId: React.Dispatch<React.SetStateAction<number | null>>;
+    setCurrency: React.Dispatch<React.SetStateAction<string>>;
   setSelectedAccountId: React.Dispatch<React.SetStateAction<string | null>>;
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }
@@ -166,13 +166,14 @@ export const saveEditedAccount = async (
     } else {
       console.error('Failed to update account', response.status, response.data);
     }
-  } catch (error) {
+  } catch (error) {  
+     setEditModalVisible(false);
     console.error('Error updating account:', error);
-
   } finally {
     setEditModalVisible(false);
   }
 };
+
 
 export const fetchTransactions = async ({
   accountId,
@@ -200,7 +201,7 @@ export const fetchTransactions = async ({
 
     setAccountId(accountId);
     setSelectedAccountId(accountId);
-
+   
     if (response.status === 200 || response.status === 201) {
       const transactions = response.data || [];
 

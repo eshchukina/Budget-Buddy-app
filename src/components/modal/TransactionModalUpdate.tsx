@@ -18,7 +18,7 @@ import {updateTransaction} from '../../api/transactionService';
 interface TransactionModalUpdate {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
-  accountId: number;
+  accountId: number | null;
   setLoading: (loading: boolean) => void;
   fetchTransactions: () => void;
   transactionToEdit?: any;

@@ -91,7 +91,7 @@ const DetailsScreen: React.FC<DetailsScreenProps> = ({
     textShiftX: 6,
     textShiftY: 1,
     textColor: '#5e718b',
-    textFontSize: 11,
+    textFontSize: 1,
     dataPointHeight: 10,
     dataPointWidth: 9,
     dataPointColor: '#e2a55e',

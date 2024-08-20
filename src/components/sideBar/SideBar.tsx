@@ -15,7 +15,7 @@ import shareApp from '../../utils/shareApp';
 import reviewPage from '../../utils/reviewApp';
 import sendEmail from '../../utils/sendEmail';
 import ModalInfo from '../modal/ModalInfo';
-import { useAuth } from '../../provider/AuthProvider';
+import {useAuth} from '../../provider/AuthProvider';
 
 interface SideBarProps {
   onClose: () => void;

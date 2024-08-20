@@ -1,4 +1,4 @@
-package com.budgetbuddyapp
+package com.uneteambudgetbuddy
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
