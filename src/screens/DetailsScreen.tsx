@@ -76,6 +76,10 @@ const DetailsScreen: React.FC<DetailsScreenProps> = ({
         return '#4e7556';
       case 'shop':
         return '#889298';
+      case 'rent':
+        return 'grey';
+      case 'education':
+        return 'pink';
       case 'other':
         return '#fff';
       default:

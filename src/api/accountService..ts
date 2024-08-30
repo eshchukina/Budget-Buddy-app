@@ -214,7 +214,7 @@ export const fetchTransactions = async ({
     }
   } catch (error) {
     
-    console.error('Error fetching account statement:', error);
+    console.error('Error fetching account statementt:', error);
   }
 };
 
