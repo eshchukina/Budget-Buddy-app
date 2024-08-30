@@ -22,4 +22,5 @@ Create, edit, and delete transactions with detailed descriptions and dates. This
 ![screenshot 11](https://github.com/eshchukina/Budget-Buddy-app/blob/main/assets/screenshots/11.png)
 ![screenshot 12](https://github.com/eshchukina/Budget-Buddy-app/blob/main/assets/screenshots/12.png)
 ![screenshot 13](https://github.com/eshchukina/Budget-Buddy-app/blob/main/assets/screenshots/13.png)
+![screenshot 14](https://github.com/eshchukina/Budget-Buddy-app/blob/main/assets/screenshots/14.png)
 
